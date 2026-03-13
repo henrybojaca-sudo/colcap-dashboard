@@ -1,6 +1,7 @@
 """
 Dashboard COLCAP — Acciones Colombia
-Datos en tiempo real via yfinance · Bolsa de Valores de Colombia
+Datos históricos BVC · Canasta MSCI COLCAP (rebalanceo nov. 2025)
+Fuente: Yahoo Finance (agrega datos de la Bolsa de Valores de Colombia)
 """
 
 import streamlit as st
@@ -21,26 +22,37 @@ st.set_page_config(
 # ─────────────────────────────────────────────────────────────────
 # CATÁLOGO ACCIONES
 # ─────────────────────────────────────────────────────────────────
+# Canasta MSCI COLCAP — rebalanceo noviembre 2025 (26 especies)
+# Tickers BVC con sufijo .CL en Yahoo Finance
+# Fuente: BVC · https://www.bvc.com.co/msci-colcap
 ACCIONES = {
-    "COLCAP (Índice)":        {"ticker": "^COLCAP",        "sector": "Índice"},
-    "Ecopetrol":              {"ticker": "ECOPETL.CL",     "sector": "Energía"},
-    "Bancolombia":            {"ticker": "BCOLO.CL",       "sector": "Financiero"},
-    "Pref. Bancolombia":      {"ticker": "PFBCOLO.CL",     "sector": "Financiero"},
-    "Grupo Sura":             {"ticker": "GRUPOSURA.CL",   "sector": "Financiero"},
-    "Pref. Grupo Sura":       {"ticker": "PFGRUPSURA.CL",  "sector": "Financiero"},
-    "Grupo Argos":            {"ticker": "GRUPOARGOS.CL",  "sector": "Industrial"},
-    "Cementos Argos":         {"ticker": "CEMARGOS.CL",    "sector": "Industrial"},
-    "Nutresa":                {"ticker": "NUTRESA.CL",     "sector": "Consumo"},
-    "ISA":                    {"ticker": "ISA.CL",         "sector": "Energía"},
-    "GEB":                    {"ticker": "GEB.CL",         "sector": "Energía"},
-    "Celsia":                 {"ticker": "CELSIA.CL",      "sector": "Energía"},
-    "Mineros":                {"ticker": "MINEROS.CL",     "sector": "Materiales"},
-    "Canacol Energy":         {"ticker": "CNE.TO",         "sector": "Energía"},
-    "Corficolombiana":        {"ticker": "CORFICOLCF.CL",  "sector": "Financiero"},
-    "Promigas":               {"ticker": "PROMIGAS.CL",    "sector": "Energía"},
-    "ETB":                    {"ticker": "ETB.CL",         "sector": "Telecom"},
-    "Almacenes Éxito":        {"ticker": "EXITO.CL",       "sector": "Consumo"},
-    "Pref. Corficolombiana":  {"ticker": "PFCORFICOL.CL",  "sector": "Financiero"},
+    "COLCAP (Índice)":          {"ticker": "^COLCAP",         "sector": "Índice"},
+    # ── Financiero ──────────────────────────────────────────────────
+    "Cibest (ex Bancolombia)":  {"ticker": "PFBCOLOM.CL",     "sector": "Financiero"},
+    "Pref. Cibest":             {"ticker": "PFCIBEST.CL",     "sector": "Financiero"},
+    "Grupo Sura":               {"ticker": "GRUPOSURA.CL",    "sector": "Financiero"},
+    "Pref. Grupo Sura":         {"ticker": "PFGRUPSURA.CL",   "sector": "Financiero"},
+    "Grupo Aval":               {"ticker": "GRUPOAVAL.CL",    "sector": "Financiero"},
+    "Pref. Grupo Aval":         {"ticker": "PFAVAL.CL",       "sector": "Financiero"},
+    "Pref. Davivienda":         {"ticker": "PFDAVVNDA.CL",    "sector": "Financiero"},
+    "Corficolombiana":          {"ticker": "CORFICOLCF.CL",   "sector": "Financiero"},
+    "Pref. Corficolombiana":    {"ticker": "PFCORFICOL.CL",   "sector": "Financiero"},
+    "BVC":                      {"ticker": "BVC.CL",          "sector": "Financiero"},
+    # ── Energía ─────────────────────────────────────────────────────
+    "Ecopetrol":                {"ticker": "ECOPETL.CL",      "sector": "Energía"},
+    "ISA":                      {"ticker": "ISA.CL",          "sector": "Energía"},
+    "GEB":                      {"ticker": "GEB.CL",          "sector": "Energía"},
+    "Celsia":                   {"ticker": "CELSIA.CL",       "sector": "Energía"},
+    "Promigas":                 {"ticker": "PROMIGAS.CL",     "sector": "Energía"},
+    "Terpel":                   {"ticker": "TERPEL.CL",       "sector": "Energía"},
+    # ── Industrial ──────────────────────────────────────────────────
+    "Grupo Argos":              {"ticker": "GRUPOARGOS.CL",   "sector": "Industrial"},
+    "Cementos Argos":           {"ticker": "CEMARGOS.CL",     "sector": "Industrial"},
+    # ── Consumo ─────────────────────────────────────────────────────
+    "Nutresa":                  {"ticker": "NUTRESA.CL",      "sector": "Consumo"},
+    "Almacenes Éxito":          {"ticker": "EXITO.CL",        "sector": "Consumo"},
+    # ── Materiales ──────────────────────────────────────────────────
+    "Mineros":                  {"ticker": "MINEROS.CL",      "sector": "Materiales"},
 }
 
 SECTOR_COLORS = {
@@ -49,7 +61,6 @@ SECTOR_COLORS = {
     "Industrial": "#8b5cf6",
     "Consumo":    "#10b981",
     "Materiales": "#ef4444",
-    "Telecom":    "#06b6d4",
     "Índice":     "#64748b",
 }
 
@@ -62,8 +73,8 @@ PERIODOS = {
     "5 Años":  1825,
 }
 
-DEFAULTS = ["COLCAP (Índice)", "Ecopetrol", "Bancolombia",
-            "Grupo Sura", "Grupo Argos", "Nutresa"]
+DEFAULTS = ["COLCAP (Índice)", "Ecopetrol", "Cibest (ex Bancolombia)",
+            "Pref. Cibest", "ISA", "GEB", "Nutresa"]
 
 # ─────────────────────────────────────────────────────────────────
 # CSS
@@ -461,7 +472,8 @@ with st.sidebar:
     mostrar_corr     = st.checkbox("Correlación", value=True)
     st.divider()
 
-    st.caption("Datos: Yahoo Finance · Caché 15 min")
+    st.caption("Fuente: BVC · Yahoo Finance · Caché 15 min")
+    st.caption("Canasta: MSCI COLCAP nov. 2025")
     st.caption(f"Actualizado: {date.today().strftime('%d/%m/%Y')}")
 
 
@@ -494,7 +506,7 @@ st.markdown(f"""
             Acciones COLCAP
             <span class="top-banner-badge">BVC</span>
         </div>
-        <div class="top-banner-sub">Bolsa de Valores de Colombia · Datos en tiempo real</div>
+        <div class="top-banner-sub">Bolsa de Valores de Colombia · Canasta MSCI COLCAP (nov. 2025)</div>
     </div>
     <div class="top-banner-right">
         {fecha_inicio.strftime('%d %b %Y')} → {fecha_fin.strftime('%d %b %Y')}<br>
