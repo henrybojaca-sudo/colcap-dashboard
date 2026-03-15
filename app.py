@@ -204,19 +204,18 @@ def inject_css():
         font-size: 3rem;
     }
 
-    /* ── Transparent button absolutely positioned over the flag card ── */
-    div[data-testid="stVerticalBlock"]:has(.flag-choice-card) {
+    /* ── Transparent button over the flag — scoped to stColumn only ── */
+    div[data-testid="stColumn"]:has(> div > div[data-testid="stVerticalBlock"] .flag-choice-card) {
         position: relative !important;
-        min-height: 160px !important;
     }
-    div[data-testid="stVerticalBlock"]:has(.flag-choice-card) div[data-testid="stButton"] {
+    div[data-testid="stColumn"]:has(> div > div[data-testid="stVerticalBlock"] .flag-choice-card) div[data-testid="stButton"] {
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
         right: 0 !important;
         z-index: 20 !important;
     }
-    div[data-testid="stVerticalBlock"]:has(.flag-choice-card) div[data-testid="stButton"] > button {
+    div[data-testid="stColumn"]:has(> div > div[data-testid="stVerticalBlock"] .flag-choice-card) div[data-testid="stButton"] > button {
         height: 160px !important;
         background: transparent !important;
         border: 3px solid transparent !important;
@@ -227,13 +226,13 @@ def inject_css():
         width: 100% !important;
         transition: background .18s, border-color .18s, transform .15s, box-shadow .18s !important;
     }
-    div[data-testid="stVerticalBlock"]:has(.flag-choice-card) div[data-testid="stButton"] > button:hover {
+    div[data-testid="stColumn"]:has(> div > div[data-testid="stVerticalBlock"] .flag-choice-card) div[data-testid="stButton"] > button:hover {
         background: rgba(255,255,255,0.12) !important;
         border-color: rgba(255,255,255,0.85) !important;
         box-shadow: 0 0 0 4px rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.5) !important;
         transform: scale(1.03) !important;
     }
-    div[data-testid="stVerticalBlock"]:has(.flag-choice-card) div[data-testid="stButton"] > button:active {
+    div[data-testid="stColumn"]:has(> div > div[data-testid="stVerticalBlock"] .flag-choice-card) div[data-testid="stButton"] > button:active {
         background: rgba(255,255,255,0.22) !important;
         transform: scale(0.97) !important;
     }
