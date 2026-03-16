@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import random
 
@@ -194,6 +195,48 @@ div[data-testid="stButton"]>button[kind="primary"]:hover{background:linear-gradi
     """, unsafe_allow_html=True)
 
 
+def inject_tension_sound():
+    components.html("""<!DOCTYPE html><html><body style="margin:0;padding:0;background:transparent">
+<script>(function(){
+  try {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    var ctx = new AC();
+
+    /* --- low pulsing drone --- */
+    var drone = ctx.createOscillator();
+    var droneG = ctx.createGain();
+    var lfo    = ctx.createOscillator();
+    var lfoG   = ctx.createGain();
+    drone.type = 'sawtooth'; drone.frequency.value = 58;
+    lfo.type   = 'sine';     lfo.frequency.value   = 0.35;
+    lfoG.gain.value = 0.022; droneG.gain.value = 0.032;
+    lfo.connect(lfoG); lfoG.connect(droneG.gain);
+    drone.connect(droneG); droneG.connect(ctx.destination);
+    drone.start(); lfo.start();
+
+    /* --- heartbeat ticks --- */
+    function tick(t, f, g) {
+      var o = ctx.createOscillator(), e = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      e.gain.setValueAtTime(g, t);
+      e.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      o.connect(e); e.connect(ctx.destination);
+      o.start(t); o.stop(t + 0.22);
+    }
+    function sched(s) {
+      for (var i = 0; i < 30; i++) {
+        tick(s + i*1.25,       195, 0.22);
+        tick(s + i*1.25 + 0.2, 145, 0.14);
+      }
+      return s + 30*1.25;
+    }
+    var nxt = sched(ctx.currentTime + 0.05);
+    setInterval(function(){ nxt = sched(nxt - 4); }, 28000);
+  } catch(e) {}
+})();</script></body></html>""", height=0)
+
+
 def render_flag_card(name, clickable=True, choice_key=""):
     iso = COUNTRY_ISO.get(name, "")
     flag_url = f"https://flagcdn.com/w160/{iso}.png" if iso else ""
@@ -288,6 +331,9 @@ def main():
 
         st.markdown('<hr class="game-divider">', unsafe_allow_html=True)
         st.markdown('<div class="question-label">¿Cuál tiene el CDS más alto? — haz clic en la bandera</div>', unsafe_allow_html=True)
+
+        if st.session_state.round_active:
+            inject_tension_sound()
 
         col_a, col_vs, col_b = st.columns([5, 1, 5])
         with col_a:
