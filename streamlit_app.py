@@ -5,6 +5,7 @@ Fuente: Yahoo Finance (agrega datos de la Bolsa de Valores de Colombia)
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import plotly.graph_objects as go
 import yfinance as yf
@@ -515,6 +516,217 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────────────────────────
+# REPRODUCTOR MUSICAL ESTILO MARIO BROS (Web Audio API - Chiptune)
+# ─────────────────────────────────────────────────────────────────
+components.html("""
+<style>
+  body { margin: 0; background: transparent; }
+  .mario-player {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #e63946 0%, #f4a261 100%);
+    border-radius: 12px;
+    border: 2px solid #c1121f;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    margin: 0 0 4px 0;
+    width: fit-content;
+  }
+  .mario-btn {
+    background: #ffba08;
+    color: #1a1a2e;
+    border: 2px solid #f48c06;
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-weight: 900;
+    font-size: 14px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 3px 0 #c07000;
+  }
+  .mario-btn:hover  { transform: translateY(-1px); box-shadow: 0 4px 0 #c07000; }
+  .mario-btn:active { transform: translateY(2px);  box-shadow: 0 1px 0 #c07000; }
+  .mario-label {
+    color: white;
+    font-size: 14px;
+    font-weight: 800;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    letter-spacing: 0.04em;
+  }
+  .note-anim {
+    color: #fff176;
+    font-size: 18px;
+    display: inline-block;
+    min-width: 50px;
+    animation: bounce 0.4s infinite alternate;
+  }
+  @keyframes bounce {
+    from { transform: translateY(0px); }
+    to   { transform: translateY(-4px); }
+  }
+</style>
+
+<div class="mario-player">
+  <button class="mario-btn" id="mario-btn" onclick="toggleMusic()">🎮 Iniciar Música</button>
+  <span class="mario-label" id="mario-label">🍄 Super COLCAP Bros!</span>
+  <span class="note-anim" id="note-anim" style="display:none;">♩♪♫♬</span>
+</div>
+
+<script>
+// ── Web Audio API Chiptune Player ──────────────────────────────
+let audioCtx = null;
+let isPlaying = false;
+let scheduledSrcs = [];
+let loopTimer = null;
+
+const BPM  = 185;
+const BEAT = 60 / BPM; // seconds per quarter-note
+
+// Frecuencias de notas (Hz)
+const N = {
+  R:0,
+  E4:329.63, F4:349.23, Fs4:369.99, G4:392.00,
+  Ab4:415.30, A4:440.00, Bb4:466.16, B4:493.88,
+  C5:523.25,  Cs5:554.37, D5:587.33, Eb5:622.25,
+  E5:659.25,  F5:698.46,  Fs5:739.99, G5:783.99,
+  Ab5:830.61, A5:880.00,  Bb5:932.33
+};
+
+// Melodía del tema overworld de Super Mario Bros
+// Formato: ['nota', duracion_en_tiempos]
+const MELODY = [
+  // === Frase 1 ===
+  ['E5',0.5],['E5',0.5],['R',0.5],['E5',0.5],
+  ['R',0.5],['C5',0.5],['E5',1],
+  ['G5',1],['R',1],['G4',1],['R',1],
+
+  // === Frase 2 ===
+  ['C5',1.5],['R',0.5],['G4',1.5],['R',0.5],
+  ['E4',1.5],['R',0.5],
+  ['A4',1],['R',0.5],['B4',1],['R',0.5],
+  ['Bb4',0.5],['A4',1],
+
+  // === Tripletes ===
+  ['G4',0.67],['E5',0.67],['G5',0.67],
+  ['A5',1],['R',0.5],['F5',0.5],['G5',0.5],
+  ['R',0.5],['E5',1],['R',0.5],
+  ['C5',0.5],['D5',0.5],['B4',1.5],['R',0.5],
+
+  // === Frase 2 (repetición) ===
+  ['C5',1.5],['R',0.5],['G4',1.5],['R',0.5],
+  ['E4',1.5],['R',0.5],
+  ['A4',1],['R',0.5],['B4',1],['R',0.5],
+  ['Bb4',0.5],['A4',1],
+
+  // === Tripletes (repetición) ===
+  ['G4',0.67],['E5',0.67],['G5',0.67],
+  ['A5',1],['R',0.5],['F5',0.5],['G5',0.5],
+  ['R',0.5],['E5',1],['R',0.5],
+  ['C5',0.5],['D5',0.5],['B4',1.5],['R',0.5],
+
+  // === Sección central ===
+  ['E5',0.5],['C5',0.5],['R',0.5],['A4',0.5],
+  ['R',1],['Ab4',0.5],['G4',0.5],
+  ['R',0.5],['B4',0.5],['R',0.5],['Bb4',0.5],
+  ['A4',0.5],['R',0.5],['C5',0.5],['R',0.5],
+
+  ['D5',0.5],['C5',0.5],['D5',1],
+  ['R',0.5],['D5',0.5],['C5',0.5],['A4',0.5],
+  ['R',0.5],['G4',0.5],['E4',0.5],['G4',0.5],
+  ['A4',1.5],['R',0.5],
+
+  // === Fanfarria ===
+  ['F5',0.5],['F5',1],['F5',1],
+  ['R',0.5],['E5',0.5],['E5',0.5],['E5',0.5],
+  ['R',0.5],['C5',0.5],['E5',1],
+  ['G5',1],['R',1],['G4',1],['R',1],
+];
+
+function playNote(freq, t0, dur, gainNode) {
+  if (!freq) return;
+  const osc = audioCtx.createOscillator();
+  const env = audioCtx.createGain();
+  osc.connect(env);
+  env.connect(gainNode);
+  osc.type = 'square';            // sonido 8-bit clásico
+  osc.frequency.value = freq;
+
+  const len = dur * 0.85;
+  env.gain.setValueAtTime(0, t0);
+  env.gain.linearRampToValueAtTime(1, t0 + 0.008);
+  env.gain.setValueAtTime(1, t0 + len - 0.015);
+  env.gain.linearRampToValueAtTime(0, t0 + len);
+
+  osc.start(t0);
+  osc.stop(t0 + len);
+  scheduledSrcs.push(osc);
+}
+
+function scheduleMelody(startTime, gainNode) {
+  let t = startTime;
+  for (const [note, beats] of MELODY) {
+    const dur = beats * BEAT;
+    playNote(N[note], t, dur, gainNode);
+    t += dur;
+  }
+  return t - startTime; // duración total en segundos
+}
+
+function startMusic() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const gain = audioCtx.createGain();
+  gain.gain.value = 0.82;          // fuerte y animado
+
+  const comp = audioCtx.createDynamicsCompressor();
+  comp.threshold.value = -18;
+  comp.ratio.value = 4;
+  gain.connect(comp);
+  comp.connect(audioCtx.destination);
+
+  const totalSec = scheduleMelody(audioCtx.currentTime + 0.05, gain);
+
+  loopTimer = setTimeout(() => {
+    if (isPlaying) startMusic();   // loop infinito
+  }, (totalSec - 0.1) * 1000);
+}
+
+function stopMusic() {
+  clearTimeout(loopTimer);
+  scheduledSrcs.forEach(s => { try { s.stop(0); } catch(e){} });
+  scheduledSrcs = [];
+  if (audioCtx) audioCtx.suspend();
+}
+
+function toggleMusic() {
+  const btn   = document.getElementById('mario-btn');
+  const label = document.getElementById('mario-label');
+  const anim  = document.getElementById('note-anim');
+
+  if (!isPlaying) {
+    isPlaying = true;
+    btn.textContent   = '⏸ Pausar';
+    label.textContent = '🎵 Super COLCAP Bros!';
+    anim.style.display = 'inline-block';
+    startMusic();
+  } else {
+    isPlaying = false;
+    btn.textContent   = '🎮 Iniciar Música';
+    label.textContent = '🍄 Super COLCAP Bros!';
+    anim.style.display = 'none';
+    stopMusic();
+  }
+}
+</script>
+""", height=65)
 
 
 # ─────────────────────────────────────────────────────────────────
