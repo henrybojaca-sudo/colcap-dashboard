@@ -169,34 +169,6 @@ section[data-testid="stSidebar"]{background:#0d1426;}
 .flag-result-card .fcc-gradient{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.3) 55%,rgba(0,0,0,0.05) 100%);}
 .flag-result-card .fcc-name{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;text-shadow:0 2px 10px rgba(0,0,0,1);}
 
-/* ── Botón transparente flotando sobre la bandera ── */
-div[data-testid="stColumn"]:has(.flag-choice-card){
-    position:relative !important;
-}
-div[data-testid="stColumn"]:has(.flag-choice-card) div[data-testid="stButton"]{
-    position:absolute !important;
-    top:0 !important;left:0 !important;right:0 !important;
-    height:160px !important;
-    z-index:10 !important;
-    margin:0 !important;padding:0 !important;
-}
-div[data-testid="stColumn"]:has(.flag-choice-card) div[data-testid="stButton"]>button{
-    width:100% !important;height:100% !important;
-    opacity:0 !important;
-    background:transparent !important;
-    border:none !important;box-shadow:none !important;
-    cursor:pointer !important;
-    border-radius:16px !important;
-    padding:0 !important;margin:0 !important;
-}
-/* Hover/active en la bandera (activado por el botón encima) */
-div[data-testid="stColumn"]:has(.flag-choice-card) div[data-testid="stButton"]>button:hover
-  ~ * .flag-choice-card,
-div[data-testid="stColumn"]:has(.flag-choice-card):hover .flag-choice-card{
-    border-color:rgba(255,255,255,0.85) !important;
-    box-shadow:0 0 0 4px rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.6) !important;
-    transform:scale(1.03) !important;
-}
 
 div[data-testid="stButton"]>button{border-radius:12px!important;font-family:'DM Sans',sans-serif!important;font-weight:600!important;font-size:.9rem!important;padding:10px 16px!important;width:100%!important;transition:all .15s ease!important;border:1.5px solid #1e3a5f!important;background:linear-gradient(135deg,#0f2a4a,#0d1f3c)!important;color:#93c5fd!important;}
 div[data-testid="stButton"]>button:hover{border-color:#3b82f6!important;color:#bfdbfe!important;transform:translateY(-1px)!important;box-shadow:0 6px 20px rgba(59,130,246,.2)!important;}
@@ -225,26 +197,26 @@ div[data-testid="stButton"]>button[kind="primary"]:hover{background:linear-gradi
 def render_flag_card(name, clickable=True, choice_key=""):
     iso = COUNTRY_ISO.get(name, "")
     flag_url = f"https://flagcdn.com/w160/{iso}.png" if iso else ""
-    img_html = (f'<img src="{flag_url}" alt="{name}">'
-                if flag_url else '<div class="fcc-placeholder">🏳️</div>')
+
+    if flag_url:
+        st.markdown(
+            f'<div style="width:100%;height:160px;border-radius:14px;overflow:hidden;'
+            f'box-shadow:0 6px 28px rgba(0,0,0,0.55);border:2px solid #1e293b;">'
+            f'<img src="{flag_url}" alt="{name}" style="width:100%;height:100%;object-fit:cover;display:block"></div>',
+            unsafe_allow_html=True)
+    else:
+        st.markdown(
+            '<div style="width:100%;height:160px;border-radius:14px;background:#1e293b;'
+            'display:flex;align-items:center;justify-content:center;font-size:3rem">🏳️</div>',
+            unsafe_allow_html=True)
 
     if clickable:
-        st.markdown(f"""
-<div class="flag-choice-card">
-  {img_html}
-  <div class="fcc-gradient"></div>
-  <div class="fcc-name">{name}</div>
-  <div class="fcc-hint">👆 seleccionar</div>
-</div>""", unsafe_allow_html=True)
-        # Botón transparente — CSS lo posiciona encima de la bandera
-        return st.button("​", key=f"flag_btn_{choice_key}", use_container_width=True)
+        return st.button(name, key=f"flag_btn_{choice_key}", use_container_width=True)
     else:
-        st.markdown(f"""
-<div class="flag-result-card">
-  {img_html}
-  <div class="fcc-gradient"></div>
-  <div class="fcc-name">{name}</div>
-</div>""", unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="text-align:center;color:#94a3b8;font-weight:700;'
+            f'font-size:.95rem;padding:8px 0">{name}</div>',
+            unsafe_allow_html=True)
         return False
 
 
