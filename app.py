@@ -409,9 +409,10 @@ def init_state():
 
 def reset_game():
     st.session_state.update({
-        "score": 0, "game_over": False, "game_started": True,
+        "score": 0, "game_over": False, "game_started": False,
         "current_pair": None, "used_pairs": set(), "feedback": None,
         "correct_country": None, "round_active": True, "email_sent": False,
+        "registered": False, "user_name": "", "user_email": "",
     })
 
 
