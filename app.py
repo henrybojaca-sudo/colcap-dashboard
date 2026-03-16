@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 import random
 
@@ -203,30 +202,6 @@ div[data-testid="stButton"]>button[kind="primary"]:hover{background:linear-gradi
     """, unsafe_allow_html=True)
 
 
-def inject_overlay_script():
-    """Injects JS that shows a dark overlay on flag click, hiding the white flash."""
-    components.html("""
-<script>
-(function(){
-  function attach(){
-    var links = window.parent.document.querySelectorAll('a.flag-link');
-    links.forEach(function(a){
-      if(a._ov) return;
-      a._ov = true;
-      a.addEventListener('click', function(){
-        var d = window.parent.document.createElement('div');
-        d.style.cssText = 'position:fixed;inset:0;background:#0a0f1e;z-index:2147483647;';
-        window.parent.document.body.appendChild(d);
-      });
-    });
-  }
-  attach();
-  new MutationObserver(attach).observe(window.parent.document.body,{childList:true,subtree:true});
-})();
-</script>
-""", height=0, scrolling=False)
-
-
 def render_flag_card(name, clickable=True, choice_key=""):
     """Renders a flag card. If clickable=True, wraps in an <a href> link."""
     iso = COUNTRY_ISO.get(name, "")
@@ -272,7 +247,6 @@ def render_flag_small(name):
 def main():
     init_state()
     inject_css()
-    inject_overlay_script()
 
     # ── Detectar clic en bandera via query param ───────────────────
     params = st.query_params
