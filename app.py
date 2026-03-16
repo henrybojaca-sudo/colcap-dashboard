@@ -1,0 +1,799 @@
+import streamlit as st
+import pandas as pd
+import random
+import math, wave, struct, io
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+st.set_page_config(
+    page_title="CDS Challenge",
+    page_icon="🌍",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
+
+COUNTRY_ISO = {
+    "Estados Unidos":"us","Brasil":"br","Colombia":"co","Chile":"cl",
+    "México":"mx","Panamá":"pa","Perú":"pe","Argentina":"ar",
+    "Ecuador":"ec","Costa Rica":"cr","Canadá":"ca","El Salvador":"sv",
+    "Guatemala":"gt","Uruguay":"uy","Nicaragua":"ni","Reino Unido":"gb",
+    "Francia":"fr","Alemania":"de","Italia":"it","España":"es",
+    "Portugal":"pt","Suecia":"se","Países Bajos":"nl","Suiza":"ch",
+    "Grecia":"gr","Austria":"at","Bélgica":"be","Bulgaria":"bg",
+    "Croacia":"hr","Dinamarca":"dk","Egipto":"eg","Finlandia":"fi",
+    "Hungría":"hu","Israel":"il","Kazajistán":"kz","Polonia":"pl",
+    "Qatar":"qa","Rumanía":"ro","Eslovaquia":"sk","Sudáfrica":"za",
+    "Checa":"cz","Eslovenia":"si","Letonia":"lv","Lituania":"lt",
+    "Estonia":"ee","Serbia":"rs","Bahrein":"bh","Nigeria":"ng",
+    "Argelia":"dz","Irak":"iq","Chipre":"cy","Dubai":"ae",
+    "Irlanda":"ie","Noruega":"no","Arabia Saudita":"sa","Kuwait":"kw",
+    "Omán":"om","Tunisia":"tn","Turquía":"tr","Islanda":"is",
+    "Abu Dhabi":"ae","Marruecos":"ma","Ghana":"gh","Gabón":"ga",
+    "Kenia":"ke","Angola":"ao","Camerún":"cm","Ruanda":"rw",
+    "Senegal":"sn","Zambia":"zm","Etiopía":"et","Namibia":"na",
+    "Japón":"jp","Australia":"au","N. Zelanda":"nz","Sur Corea":"kr",
+    "China":"cn","Hong Kong":"hk","India":"in","Indonesia":"id",
+    "Malasia":"my","Filipinas":"ph","Pakistán":"pk","Tailandia":"th",
+    "Vietnam":"vn","Mongolia":"mn",
+}
+
+DEFAULT_DATA = [
+    ("Estados Unidos",38.73),("Brasil",133.76),("Colombia",228.29),
+    ("Chile",51.69),("México",91.32),("Panamá",116.45),
+    ("Perú",74.00),("Argentina",565.16),("Ecuador",432.57),
+    ("Costa Rica",155.35),("Canadá",19.54),("El Salvador",283.89),
+    ("Guatemala",157.60),("Uruguay",61.38),("Nicaragua",479.35),
+    ("Reino Unido",17.96),("Francia",28.24),("Alemania",9.10),
+    ("Italia",28.72),("España",18.63),("Portugal",17.78),
+    ("Suecia",8.27),("Países Bajos",7.78),("Suiza",13.55),
+    ("Grecia",29.37),("Austria",14.70),("Bélgica",17.05),
+    ("Bulgaria",53.62),("Croacia",61.07),("Dinamarca",8.75),
+    ("Egipto",345.72),("Finlandia",13.63),("Hungría",103.29),
+    ("Israel",87.49),("Kazajistán",94.19),("Polonia",63.62),
+    ("Qatar",41.92),("Rumanía",136.76),("Eslovaquia",40.39),
+    ("Sudáfrica",152.82),("Checa",30.31),("Eslovenia",35.43),
+    ("Letonia",56.71),("Lituania",59.50),("Estonia",67.60),
+    ("Serbia",146.45),("Bahrein",255.17),("Nigeria",327.19),
+    ("Argelia",91.67),("Irak",298.02),("Chipre",48.62),
+    ("Dubai",66.18),("Irlanda",16.49),("Noruega",9.07),
+    ("Arabia Saudita",84.83),("Kuwait",62.19),("Omán",90.34),
+    ("Tunisia",715.47),("Turquía",252.87),("Islanda",36.78),
+    ("Abu Dhabi",43.14),("Marruecos",86.40),("Ghana",361.73),
+    ("Gabón",760.72),("Kenia",401.32),("Angola",572.79),
+    ("Camerún",640.01),("Ruanda",378.01),("Senegal",1084.97),
+    ("Zambia",368.87),("Etiopía",3432.69),("Namibia",297.74),
+    ("Japón",26.87),("Australia",14.67),("N. Zelanda",14.69),
+    ("Sur Corea",27.18),("China",46.74),("Hong Kong",28.64),
+    ("India",58.63),("Indonesia",88.89),("Malasia",44.57),
+    ("Filipinas",68.13),("Pakistán",519.72),("Tailandia",46.82),
+    ("Vietnam",87.35),("Mongolia",232.40),
+]
+
+NON_COUNTRIES = {"América","EMEA","Asia/Pacífico","Name"}
+
+# ── Perfiles de riesgo (basados en Perfil-Riesgo © Posgrado en Finanzas) ──────
+# Mapeados desde el puntaje del CDS Challenge a los 5 perfiles oficiales.
+# Score 0-2  → Conservador
+# Score 3-7  → Moderado-Conservador
+# Score 8-15 → Moderado
+# Score 16-30→ Moderado-Agresivo
+# Score 31+  → Agresivo
+RISK_PROFILES = [
+    {
+        "min": 0, "max": 2,
+        "nombre": "Conservador",
+        "emoji": "🛡️",
+        "color": "#4a9eff",
+        "horizonte": "Corto plazo (< 3 años)",
+        "volatilidad": "Muy baja",
+        "retorno_esperado": "Inflación ± 1%",
+        "descripcion": (
+            "Prioriza la preservación del capital por encima de todo. Prefiere instrumentos "
+            "de renta fija, mercado monetario y depósitos a término. Tiene muy baja tolerancia "
+            "a la volatilidad y busca certeza sobre el valor de su capital."
+        ),
+        "estrategia": (
+            "CDTs, bonos del gobierno, fondos de mercado monetario, "
+            "cuentas de ahorro de alto rendimiento."
+        ),
+    },
+    {
+        "min": 3, "max": 7,
+        "nombre": "Moderado-Conservador",
+        "emoji": "⚓",
+        "color": "#38d9a9",
+        "horizonte": "Mediano plazo (3–5 años)",
+        "volatilidad": "Baja",
+        "retorno_esperado": "Inflación + 2–3%",
+        "descripcion": (
+            "Acepta un nivel limitado de riesgo a cambio de rendimientos ligeramente superiores "
+            "a los del mercado monetario. Prefiere portafolios con predominancia de renta fija "
+            "y una pequeña exposición a renta variable."
+        ),
+        "estrategia": (
+            "70–80% renta fija (bonos grado inversión, CDTs) + "
+            "20–30% renta variable diversificada (ETFs de índice)."
+        ),
+    },
+    {
+        "min": 8, "max": 15,
+        "nombre": "Moderado",
+        "emoji": "⚖️",
+        "color": "#f0d080",
+        "horizonte": "Mediano-largo plazo (5–10 años)",
+        "volatilidad": "Moderada",
+        "retorno_esperado": "Inflación + 4–6%",
+        "descripcion": (
+            "Busca un crecimiento equilibrado del capital. Tolera fluctuaciones moderadas en "
+            "el corto plazo y combina renta fija con renta variable en proporciones similares. "
+            "Su horizonte es de mediano a largo plazo."
+        ),
+        "estrategia": (
+            "50% renta fija + 50% renta variable (acciones, ETFs globales, fondos balanceados)."
+        ),
+    },
+    {
+        "min": 16, "max": 30,
+        "nombre": "Moderado-Agresivo",
+        "emoji": "🚀",
+        "color": "#ff9a3c",
+        "horizonte": "Largo plazo (10–20 años)",
+        "volatilidad": "Alta",
+        "retorno_esperado": "Inflación + 6–10%",
+        "descripcion": (
+            "Dispuesto a asumir un riesgo considerable para obtener rendimientos superiores "
+            "al mercado. Entiende y acepta la volatilidad como parte del proceso de inversión. "
+            "Tiene horizonte de largo plazo."
+        ),
+        "estrategia": (
+            "70% renta variable (acciones individuales, ETFs temáticos, REITs) + "
+            "30% alternativos y renta fija."
+        ),
+    },
+    {
+        "min": 31, "max": 9999,
+        "nombre": "Agresivo",
+        "emoji": "⚡",
+        "color": "#ff4d6d",
+        "horizonte": "Largo plazo (> 20 años)",
+        "volatilidad": "Muy alta",
+        "retorno_esperado": "Inflación + 10%+",
+        "descripcion": (
+            "Alta tolerancia al riesgo. Busca maximizar el retorno absoluto con plena consciencia "
+            "de las pérdidas potenciales. Invierte en renta variable concentrada, alternativos "
+            "sofisticados y puede usar apalancamiento."
+        ),
+        "estrategia": (
+            "Renta variable concentrada, derivados, private equity, venture capital, "
+            "hedge funds, activos alternativos."
+        ),
+    },
+]
+
+
+def get_risk_profile(score: int) -> dict:
+    for p in RISK_PROFILES:
+        if p["min"] <= score <= p["max"]:
+            return p
+    return RISK_PROFILES[-1]
+
+
+# ── Música Mario Bros ─────────────────────────────────────────────────────────
+@st.cache_data
+def _mario_wav() -> bytes:
+    SR = 22050
+    T = 60.0 / 185
+    MELODY = [
+        (659.25,.5),(659.25,.5),(0,.5),(659.25,.5),(0,.5),(523.25,.5),(659.25,1),
+        (783.99,1),(0,1),(392.00,1),(0,1),
+        (523.25,1.5),(0,.5),(392.00,1.5),(0,.5),(329.63,1.5),(0,.5),
+        (440.00,1),(0,.5),(493.88,1),(0,.5),(466.16,.5),(440.00,1),
+        (392.00,.67),(659.25,.67),(783.99,.67),
+        (880.00,1),(0,.5),(698.46,.5),(783.99,.5),
+        (0,.5),(659.25,1),(0,.5),(523.25,.5),(587.33,.5),(493.88,1.5),(0,.5),
+        (523.25,1.5),(0,.5),(392.00,1.5),(0,.5),(329.63,1.5),(0,.5),
+        (440.00,1),(0,.5),(493.88,1),(0,.5),(466.16,.5),(440.00,1),
+        (392.00,.67),(659.25,.67),(783.99,.67),
+        (880.00,1),(0,.5),(698.46,.5),(783.99,.5),
+        (0,.5),(659.25,1),(0,.5),(523.25,.5),(587.33,.5),(493.88,1.5),(0,.5),
+        (659.25,.5),(523.25,.5),(0,.5),(440.00,.5),(0,1),(415.30,.5),(392.00,.5),
+        (0,.5),(493.88,.5),(0,.5),(466.16,.5),(440.00,.5),(0,.5),(523.25,.5),(0,.5),
+        (587.33,.5),(523.25,.5),(587.33,1),(0,.5),(587.33,.5),(523.25,.5),(440.00,.5),
+        (0,.5),(392.00,.5),(329.63,.5),(392.00,.5),(440.00,1.5),(0,.5),
+        (698.46,.5),(698.46,1),(698.46,1),
+        (0,.5),(659.25,.5),(659.25,.5),(659.25,.5),
+        (0,.5),(523.25,.5),(659.25,1),
+        (783.99,1),(0,1),(392.00,1),(0,1),
+    ]
+    samples = []
+    for freq, beats in MELODY:
+        n = int(SR * beats * T)
+        if freq == 0:
+            samples.extend([0] * n)
+        else:
+            for i in range(n):
+                env = min(1.0, i / (SR * 0.008)) * max(0.0, 1.0 - i / n * 0.12)
+                v = env * 0.28 * (1 if math.sin(2 * math.pi * freq * i / SR) > 0 else -1)
+                samples.append(max(-32767, min(32767, int(v * 32767))))
+    buf = io.BytesIO()
+    with wave.open(buf, 'wb') as wf:
+        wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(SR)
+        wf.writeframes(struct.pack(f'<{len(samples)}h', *samples))
+    return buf.getvalue()
+
+
+# ── Email ─────────────────────────────────────────────────────────────────────
+def send_results_email(to_email: str, nombre: str, score: int, best: int,
+                       profile: dict, n_paises: int) -> bool:
+    try:
+        smtp_user = st.secrets["smtp"]["sender"]
+        smtp_pass = st.secrets["smtp"]["password"]
+        smtp_host = st.secrets["smtp"].get("host", "smtp.gmail.com")
+        smtp_port = int(st.secrets["smtp"].get("port", 587))
+    except Exception:
+        return False
+
+    html = f"""
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8">
+<style>
+  body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #0b0f1a; margin: 0; padding: 0; }}
+  .wrap {{ max-width: 600px; margin: 32px auto; background: #0b0f1a; border-radius: 16px;
+           overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+           border: 1px solid rgba(201,168,76,0.2); }}
+  .header {{ background: linear-gradient(135deg, #0b0f1a 0%, #1a1f2e 100%);
+             border-bottom: 2px solid {profile["color"]};
+             padding: 32px 32px 24px; text-align: center; }}
+  .header h1 {{ color: #c9a84c; font-size: 22px; margin: 0 0 6px; font-weight: 800;
+               letter-spacing: -.3px; }}
+  .header p  {{ color: rgba(255,255,255,0.5); font-size: 13px; margin: 0; }}
+  .body {{ padding: 28px 32px; }}
+  .greeting {{ color: #e2e8f0; font-size: 15px; margin-bottom: 24px; line-height: 1.6; }}
+  .profile-box {{ background: rgba(255,255,255,0.04); border: 2px solid {profile["color"]};
+                  border-radius: 14px; padding: 24px; margin-bottom: 22px; text-align: center; }}
+  .profile-emoji {{ font-size: 52px; display: block; margin-bottom: 10px; }}
+  .profile-label {{ color: rgba(255,255,255,0.45); font-size: 11px; text-transform: uppercase;
+                    letter-spacing: .12em; margin-bottom: 4px; }}
+  .profile-name {{ color: {profile["color"]}; font-size: 26px; font-weight: 800; margin: 0 0 12px; }}
+  .profile-desc {{ color: #94a3b8; font-size: 13px; line-height: 1.75; text-align: left; }}
+  .meta-row {{ display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; }}
+  .meta-pill {{ background: rgba(255,255,255,0.06); border-radius: 20px; padding: 4px 12px;
+                font-size: 11px; color: #64748b; }}
+  .meta-pill span {{ color: {profile["color"]}; font-weight: 700; }}
+  .scores-table {{ width: 100%; border-collapse: separate; border-spacing: 8px;
+                   margin-bottom: 22px; }}
+  .scores-table td {{ background: rgba(255,255,255,0.05); border-radius: 10px; padding: 14px;
+                      text-align: center; }}
+  .score-val {{ font-size: 28px; font-weight: 800; }}
+  .score-lbl {{ font-size: 11px; color: #64748b; text-transform: uppercase;
+                letter-spacing: .08em; margin-top: 4px; }}
+  .strat {{ background: rgba(201,168,76,0.07); border: 1px solid rgba(201,168,76,0.25);
+            border-radius: 10px; padding: 14px 18px; margin-bottom: 22px; }}
+  .strat-title {{ color: #c9a84c; font-size: 11px; font-weight: 700; text-transform: uppercase;
+                  letter-spacing: .1em; margin-bottom: 6px; }}
+  .strat-text  {{ color: #94a3b8; font-size: 13px; line-height: 1.6; }}
+  .cta {{ text-align: center; margin-bottom: 24px; }}
+  .cta a {{ display: inline-block; background: linear-gradient(135deg,#c9a84c,#b8860b);
+            color: #0b0f1a; text-decoration: none; padding: 13px 32px; border-radius: 10px;
+            font-weight: 800; font-size: 14px; letter-spacing: -.1px; }}
+  .footer {{ border-top: 1px solid rgba(255,255,255,0.07); padding: 18px 32px;
+             text-align: center; color: #334155; font-size: 11px; }}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>🌍 Tu Perfil de Riesgo</h1>
+    <p>CDS Challenge · Posgrado en Finanzas</p>
+  </div>
+  <div class="body">
+    <p class="greeting">Hola <strong style="color:#e2e8f0">{nombre}</strong>,<br>
+    basado en tu desempeño en el <strong style="color:#c9a84c">CDS Challenge</strong>,
+    hemos determinado tu perfil de inversionista:</p>
+
+    <div class="profile-box">
+      <span class="profile-emoji">{profile["emoji"]}</span>
+      <div class="profile-label">Tu perfil de riesgo</div>
+      <div class="profile-name">{profile["nombre"]}</div>
+      <p class="profile-desc">{profile["descripcion"]}</p>
+      <div class="meta-row">
+        <div class="meta-pill">⏱ Horizonte: <span>{profile["horizonte"]}</span></div>
+        <div class="meta-pill">〜 Volatilidad: <span>{profile["volatilidad"]}</span></div>
+        <div class="meta-pill">📈 Retorno esperado: <span>{profile["retorno_esperado"]}</span></div>
+      </div>
+    </div>
+
+    <table class="scores-table">
+      <tr>
+        <td>
+          <div class="score-val" style="color:#fbbf24">{score}</div>
+          <div class="score-lbl">Racha CDS</div>
+        </td>
+        <td>
+          <div class="score-val" style="color:#34d399">{best}</div>
+          <div class="score-lbl">Mejor récord</div>
+        </td>
+        <td>
+          <div class="score-val" style="color:#818cf8">{n_paises}</div>
+          <div class="score-lbl">Países en juego</div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="strat">
+      <div class="strat-title">📌 Estrategia de portafolio recomendada</div>
+      <div class="strat-text">{profile["estrategia"]}</div>
+    </div>
+
+    <div class="cta">
+      <a href="https://fpgbwfanvckbcbbcpp6ejw.streamlit.app/">
+        Completar encuesta de perfil →
+      </a>
+    </div>
+  </div>
+  <div class="footer">
+    Posgrado en Finanzas · CDS Challenge &nbsp;·&nbsp;
+    Este correo fue generado automáticamente a partir de tus resultados en el juego.
+  </div>
+</div>
+</body>
+</html>
+"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = f"Perfil {profile['nombre']} {profile['emoji']} — CDS Challenge · Posgrado en Finanzas"
+    msg["From"]    = smtp_user
+    msg["To"]      = to_email
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, to_email, msg.as_string())
+        return True
+    except Exception:
+        return False
+
+
+# ── Datos ─────────────────────────────────────────────────────────────────────
+def load_excel(f):
+    try:
+        raw = pd.read_excel(f, header=None)
+        rows = []
+        for _, row in raw.iterrows():
+            name = str(row[0]).strip()
+            if name in NON_COUNTRIES or name == "nan":
+                continue
+            try:
+                rows.append((name, round(float(row[7]), 2)))
+            except (TypeError, ValueError, IndexError):
+                continue
+        if len(rows) < 2:
+            st.error("Necesitas al menos 2 países con CDS en columna H.")
+            return None
+        return pd.DataFrame(rows, columns=["Pais","CDS"]).reset_index(drop=True)
+    except Exception as e:
+        st.error(f"Error: {e}")
+        return None
+
+
+def default_df():
+    return pd.DataFrame(DEFAULT_DATA, columns=["Pais","CDS"])
+
+
+def pick_pair(df, used):
+    idx = list(df.index)
+    cands = [(i,j) for i in idx for j in idx if i<j and (i,j) not in used]
+    return random.choice(cands) if cands else None
+
+
+def init_state():
+    defaults = {
+        "df": None, "score": 0, "best": 0, "game_over": False,
+        "game_started": False, "current_pair": None, "used_pairs": set(),
+        "feedback": None, "correct_country": None, "round_active": True,
+        # registro
+        "registered": False, "user_name": "", "user_email": "",
+        "email_sent": False,
+    }
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+    if st.session_state.df is None:
+        st.session_state.df = default_df()
+
+
+def reset_game():
+    st.session_state.update({
+        "score": 0, "game_over": False, "game_started": True,
+        "current_pair": None, "used_pairs": set(), "feedback": None,
+        "correct_country": None, "round_active": True, "email_sent": False,
+    })
+
+
+def advance():
+    st.session_state.feedback = None
+    st.session_state.correct_country = None
+    st.session_state.round_active = True
+    pair = pick_pair(st.session_state.df, st.session_state.used_pairs)
+    if pair is None:
+        st.session_state.game_over = True
+        st.session_state.feedback = "completed"
+    else:
+        st.session_state.current_pair = pair
+        st.session_state.used_pairs.add(pair)
+
+
+# ── CSS ───────────────────────────────────────────────────────────────────────
+def inject_css():
+    st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+html,body,[class*="css"]{font-family:'DM Sans',sans-serif;}
+.stApp{background:#0a0f1e;}
+section[data-testid="stSidebar"]{background:#0d1426;}
+.game-header{text-align:center;padding:28px 0 8px;margin-bottom:4px;}
+.game-title{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#fff;letter-spacing:-.5px;margin:0;line-height:1.1;}
+.game-title span{color:#fbbf24;}
+.game-subtitle{color:#64748b;font-size:.85rem;margin-top:6px;letter-spacing:.05em;text-transform:uppercase;}
+.score-row{display:flex;justify-content:center;gap:10px;margin:16px 0 24px;flex-wrap:wrap;}
+.pill{display:flex;align-items:center;gap:6px;padding:6px 16px;border-radius:100px;font-size:.88rem;font-weight:600;}
+.pill-score{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);color:#fbbf24;}
+.pill-best{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:#34d399;}
+.pill-countries{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:#818cf8;}
+.question-label{text-align:center;color:#94a3b8;font-size:.9rem;font-weight:500;margin-bottom:20px;letter-spacing:.03em;text-transform:uppercase;}
+.vs-divider{display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;}
+.vs-text{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:#334155;letter-spacing:.15em;}
+.vs-line{width:1px;height:28px;background:linear-gradient(to bottom,transparent,#334155,transparent);margin:4px 0;}
+div[data-testid="stButton"]>button{border-radius:12px!important;font-family:'DM Sans',sans-serif!important;font-weight:600!important;font-size:.9rem!important;padding:10px 16px!important;width:100%!important;transition:all .15s ease!important;border:1.5px solid #1e3a5f!important;background:linear-gradient(135deg,#0f2a4a,#0d1f3c)!important;color:#93c5fd!important;}
+div[data-testid="stButton"]>button:hover{border-color:#3b82f6!important;color:#bfdbfe!important;transform:translateY(-1px)!important;box-shadow:0 6px 20px rgba(59,130,246,.2)!important;}
+div[data-testid="stButton"]>button[kind="primary"]{background:linear-gradient(135deg,#1d4ed8,#1e40af)!important;border-color:#3b82f6!important;color:#fff!important;}
+div[data-testid="stButton"]>button[kind="primary"]:hover{background:linear-gradient(135deg,#2563eb,#1d4ed8)!important;box-shadow:0 6px 24px rgba(37,99,235,.35)!important;}
+.fb-box{border-radius:14px;padding:14px 18px;text-align:center;font-weight:600;font-size:.95rem;margin:16px 0 12px;line-height:1.5;}
+.fb-correct{background:rgba(52,211,153,.08);border:1.5px solid rgba(52,211,153,.3);color:#34d399;}
+.fb-wrong{background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.3);color:#f87171;}
+.fb-done{background:rgba(251,191,36,.08);border:1.5px solid rgba(251,191,36,.3);color:#fbbf24;}
+.cds-reveal{display:flex;justify-content:center;gap:12px;margin:8px 0 16px;flex-wrap:wrap;}
+.cds-badge{padding:4px 14px;border-radius:100px;font-size:.82rem;font-weight:600;}
+.cds-winner{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);color:#34d399;}
+.cds-loser{background:rgba(100,116,139,.12);border:1px solid rgba(100,116,139,.25);color:#64748b;}
+.game-divider{border:none;border-top:1px solid #1e293b;margin:20px 0;}
+.welcome-box{text-align:center;padding:48px 24px;color:#475569;}
+.welcome-icon{font-size:3.5rem;margin-bottom:16px;}
+.welcome-text{font-size:1rem;font-weight:500;color:#64748b;}
+.welcome-sub{font-size:.83rem;color:#334155;margin-top:8px;}
+.reg-box{background:rgba(255,255,255,0.03);border:1px solid #1e293b;border-radius:16px;padding:28px 24px;margin:24px 0;}
+.profile-result{border-radius:16px;padding:22px 24px;margin:16px 0;text-align:center;}
+#MainMenu,footer,header{visibility:hidden;}
+.block-container{padding-top:1.5rem;padding-bottom:2rem;}
+div[data-testid="stTextInput"] input{background:#0d1426!important;border:1.5px solid #1e3a5f!important;border-radius:10px!important;color:#e2e8f0!important;font-size:.95rem!important;}
+div[data-testid="stTextInput"] input:focus{border-color:#3b82f6!important;box-shadow:0 0 0 3px rgba(59,130,246,.15)!important;}
+</style>
+    """, unsafe_allow_html=True)
+
+
+# ── Render helpers ────────────────────────────────────────────────────────────
+def render_flag_card(name, clickable=True, choice_key=""):
+    iso = COUNTRY_ISO.get(name, "")
+    flag_url = f"https://flagcdn.com/w160/{iso}.png" if iso else ""
+    if flag_url:
+        st.markdown(
+            f'<div style="width:100%;height:160px;border-radius:14px;overflow:hidden;'
+            f'box-shadow:0 6px 28px rgba(0,0,0,0.55);border:2px solid #1e293b;">'
+            f'<img src="{flag_url}" alt="{name}" style="width:100%;height:100%;object-fit:cover;display:block"></div>',
+            unsafe_allow_html=True)
+    else:
+        st.markdown(
+            '<div style="width:100%;height:160px;border-radius:14px;background:#1e293b;'
+            'display:flex;align-items:center;justify-content:center;font-size:3rem">🏳️</div>',
+            unsafe_allow_html=True)
+    if clickable:
+        return st.button(name, key=f"flag_btn_{choice_key}", use_container_width=True)
+    st.markdown(
+        f'<div style="text-align:center;color:#94a3b8;font-weight:700;'
+        f'font-size:.95rem;padding:8px 0">{name}</div>',
+        unsafe_allow_html=True)
+    return False
+
+
+def render_flag_small(name):
+    iso = COUNTRY_ISO.get(name, "")
+    flag_url = f"https://flagcdn.com/w160/{iso}.png" if iso else ""
+    if flag_url:
+        st.markdown(
+            f'<div style="width:100%;height:100px;border-radius:10px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.4)">'
+            f'<img src="{flag_url}" alt="{name}" style="width:100%;height:100%;object-fit:cover;display:block"></div>',
+            unsafe_allow_html=True)
+    else:
+        st.markdown(
+            '<div style="width:100%;height:100px;border-radius:10px;background:#1e293b;'
+            'display:flex;align-items:center;justify-content:center;font-size:2.5rem">🏳️</div>',
+            unsafe_allow_html=True)
+
+
+def render_profile_card(profile: dict, score: int, best: int):
+    c = profile["color"]
+    st.markdown(
+        f'<div class="profile-result" style="background:rgba(255,255,255,0.03);'
+        f'border:2px solid {c};">'
+        # emoji + nombre
+        f'<div style="font-size:3rem;margin-bottom:6px">{profile["emoji"]}</div>'
+        f'<div style="color:rgba(255,255,255,0.4);font-size:.7rem;text-transform:uppercase;'
+        f'letter-spacing:.12em;margin-bottom:4px">Tu perfil de riesgo</div>'
+        f'<div style="font-family:\'Syne\',sans-serif;font-size:1.5rem;font-weight:800;'
+        f'color:{c};margin-bottom:12px">{profile["nombre"]}</div>'
+        # descripción
+        f'<div style="color:#94a3b8;font-size:.87rem;line-height:1.75;text-align:left;'
+        f'margin-bottom:14px">{profile["descripcion"]}</div>'
+        # pills de metadata
+        f'<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px">'
+        f'<span style="background:rgba(255,255,255,0.06);border-radius:20px;padding:3px 12px;'
+        f'font-size:.72rem;color:#64748b">⏱ <span style="color:{c}">{profile["horizonte"]}</span></span>'
+        f'<span style="background:rgba(255,255,255,0.06);border-radius:20px;padding:3px 12px;'
+        f'font-size:.72rem;color:#64748b">〜 <span style="color:{c}">{profile["volatilidad"]}</span></span>'
+        f'<span style="background:rgba(255,255,255,0.06);border-radius:20px;padding:3px 12px;'
+        f'font-size:.72rem;color:#64748b">📈 <span style="color:{c}">{profile["retorno_esperado"]}</span></span>'
+        f'</div>'
+        # estrategia
+        f'<div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.2);'
+        f'border-radius:8px;padding:10px 14px;text-align:left;">'
+        f'<span style="color:#c9a84c;font-size:.72rem;font-weight:700;text-transform:uppercase;'
+        f'letter-spacing:.1em">📌 Estrategia de portafolio</span><br>'
+        f'<span style="color:#94a3b8;font-size:.84rem">{profile["estrategia"]}</span>'
+        f'</div></div>',
+        unsafe_allow_html=True)
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+def main():
+    init_state()
+    inject_css()
+
+    st.markdown(
+        '<div class="game-header">'
+        '<div class="game-title">¿Quién tiene mayor <span>riesgo país</span>?</div>'
+        '<div class="game-subtitle">Credit Default Swap Challenge · Posgrado en Finanzas</div>'
+        '</div>', unsafe_allow_html=True)
+
+    # ── Pantalla de registro ──────────────────────────────────────────────────
+    if not st.session_state.registered:
+        st.markdown('<div class="reg-box">', unsafe_allow_html=True)
+        st.markdown(
+            '<div style="text-align:center;margin-bottom:20px">'
+            '<div style="font-size:2.5rem;margin-bottom:8px">👤</div>'
+            '<div style="font-family:\'Syne\',sans-serif;font-size:1.1rem;font-weight:800;'
+            'color:#e2e8f0">Antes de comenzar</div>'
+            '<div style="color:#64748b;font-size:.85rem;margin-top:4px">'
+            'Ingresa tus datos para recibir tu perfil de riesgo por correo</div>'
+            '</div>',
+            unsafe_allow_html=True)
+        nombre_input = st.text_input("Nombre completo", placeholder="Ej: María García",
+                                     key="input_nombre")
+        email_input  = st.text_input("Correo electrónico", placeholder="Ej: maria@ejemplo.com",
+                                     key="input_email")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        _, cc, _ = st.columns([2, 3, 2])
+        with cc:
+            if st.button("▶️ Comenzar juego", type="primary", use_container_width=True):
+                n = nombre_input.strip()
+                e = email_input.strip()
+                if not n:
+                    st.error("Por favor ingresa tu nombre.")
+                elif not e or "@" not in e or "." not in e.split("@")[-1]:
+                    st.error("Por favor ingresa un correo válido.")
+                else:
+                    st.session_state.user_name  = n
+                    st.session_state.user_email = e
+                    st.session_state.registered = True
+                    st.rerun()
+        return
+
+    # ── Encabezado de score ───────────────────────────────────────────────────
+    n = len(st.session_state.df)
+    nombre_display = st.session_state.user_name.split()[0]
+    st.markdown(
+        f'<div class="score-row">'
+        f'<div class="pill pill-score">🔥 Racha: {st.session_state.score}</div>'
+        f'<div class="pill pill-best">🏆 Mejor: {st.session_state.best}</div>'
+        f'<div class="pill pill-countries">👤 {nombre_display}</div>'
+        f'<div class="pill pill-countries">🌍 {n} países</div>'
+        f'</div>', unsafe_allow_html=True)
+
+    # ── Música ────────────────────────────────────────────────────────────────
+    _, cm, _ = st.columns([1, 4, 1])
+    with cm:
+        st.markdown(
+            '<div style="text-align:center;color:#475569;font-size:.72rem;'
+            'letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px">'
+            '🎵 Música del juego · haz clic en ▶</div>',
+            unsafe_allow_html=True)
+        st.audio(_mario_wav(), format="audio/wav", loop=True)
+
+    # ── Sidebar ───────────────────────────────────────────────────────────────
+    with st.sidebar:
+        st.markdown("### 📂 Datos")
+        st.caption("Sube tu propio archivo Excel con CDS actualizados")
+        up = st.file_uploader("Excel (col A=País, col H=CDS)", type=["xlsx"],
+                               label_visibility="collapsed")
+        if up:
+            dfn = load_excel(up)
+            if dfn is not None:
+                st.session_state.df = dfn
+                reset_game(); advance()
+                st.success(f"✅ {len(dfn)} países cargados"); st.rerun()
+        st.divider()
+        if st.checkbox("📊 Ranking CDS"):
+            d = st.session_state.df.copy(); d.columns = ["País","CDS (pb)"]
+            st.dataframe(d.sort_values("CDS (pb)", ascending=False).reset_index(drop=True),
+                         hide_index=True, use_container_width=True, height=480)
+        st.divider()
+        st.caption("**CDS** = Credit Default Swap. Mayor CDS = Mayor riesgo soberano.")
+
+    # ── Botón nuevo juego ─────────────────────────────────────────────────────
+    c1, c2, c3 = st.columns([2, 3, 2])
+    with c2:
+        label = "🎮 Nuevo juego" if st.session_state.game_started else "▶️ Iniciar juego"
+        if st.button(label, type="primary", use_container_width=True):
+            reset_game(); advance(); st.rerun()
+
+    # ── Juego activo ──────────────────────────────────────────────────────────
+    if st.session_state.game_started and not st.session_state.game_over:
+        pair = st.session_state.current_pair
+        if not pair:
+            return
+        df = st.session_state.df
+        ia, ib = pair
+        ca, cb = df.loc[ia,"Pais"], df.loc[ib,"Pais"]
+        cds_a, cds_b = df.loc[ia,"CDS"], df.loc[ib,"CDS"]
+
+        st.markdown('<hr class="game-divider">', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="question-label">¿Cuál tiene el CDS más alto? — haz clic en la bandera</div>',
+            unsafe_allow_html=True)
+
+        col_a, col_vs, col_b = st.columns([5, 1, 5])
+        with col_a:
+            clicked_a = render_flag_card(ca, clickable=st.session_state.round_active,
+                                         choice_key="a")
+        with col_vs:
+            st.markdown(
+                '<div class="vs-divider"><div class="vs-line"></div>'
+                '<div class="vs-text">VS</div><div class="vs-line"></div></div>',
+                unsafe_allow_html=True)
+        with col_b:
+            clicked_b = render_flag_card(cb, clickable=st.session_state.round_active,
+                                         choice_key="b")
+
+        if st.session_state.round_active and (clicked_a or clicked_b):
+            correct = ca if cds_a > cds_b else cb
+            chosen  = ca if clicked_a else cb
+            if chosen == correct:
+                st.session_state.score += 1
+                st.session_state.best = max(st.session_state.best, st.session_state.score)
+                st.session_state.feedback = "correct"
+            else:
+                st.session_state.feedback = "wrong"
+                st.session_state.game_over = True
+            st.session_state.correct_country = correct
+            st.session_state.round_active = False
+            st.rerun()
+
+        if st.session_state.feedback == "correct":
+            cn    = st.session_state.correct_country
+            c_cds = df.loc[df["Pais"]==cn,"CDS"].values[0]
+            ot    = cb if cn==ca else ca
+            o_cds = df.loc[df["Pais"]==ot,"CDS"].values[0]
+            st.markdown(
+                f'<div class="fb-box fb-correct">✅ ¡Correcto! <b>{cn}</b> tiene mayor riesgo soberano</div>',
+                unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="cds-reveal">'
+                f'<div class="cds-badge cds-winner">🔴 {cn}: {c_cds:,.1f} pb</div>'
+                f'<div class="cds-badge cds-loser">⚪ {ot}: {o_cds:,.1f} pb</div>'
+                f'</div>', unsafe_allow_html=True)
+            _, cn2, _ = st.columns([2, 3, 2])
+            with cn2:
+                if st.button("Siguiente →", type="primary", use_container_width=True):
+                    advance(); st.rerun()
+
+    # ── Game over ─────────────────────────────────────────────────────────────
+    if st.session_state.game_over:
+        fb   = st.session_state.feedback
+        sc   = st.session_state.score
+        bst  = st.session_state.best
+        pair = st.session_state.current_pair
+        df   = st.session_state.df
+
+        if fb == "completed":
+            st.markdown(
+                f'<div class="fb-box fb-done">🎉 ¡Completaste todos los pares! '
+                f'· Racha: <b>{sc}</b> · Récord: <b>{bst}</b></div>',
+                unsafe_allow_html=True)
+        elif fb == "wrong" and pair:
+            ia, ib = pair
+            ca, cb = df.loc[ia,"Pais"], df.loc[ib,"Pais"]
+            cds_a, cds_b = df.loc[ia,"CDS"], df.loc[ib,"CDS"]
+            cn    = st.session_state.correct_country
+            c_cds = df.loc[df["Pais"]==cn,"CDS"].values[0]
+            ot    = cb if cn==ca else ca
+            o_cds = df.loc[df["Pais"]==ot,"CDS"].values[0]
+            st.markdown(
+                f'<div class="fb-box fb-wrong">❌ Racha detenida en <b>{sc}</b> '
+                f'acierto{"s" if sc!=1 else ""}<br>'
+                f'<small>Respuesta correcta: <b>{cn}</b> ({c_cds:,.1f} pb) '
+                f'vs {ot} ({o_cds:,.1f} pb)</small></div>',
+                unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+            a2, v2, b2 = st.columns([5, 1, 5])
+            with a2:
+                render_flag_small(ca)
+                col_c = "#f87171" if ca!=cn else "#34d399"
+                st.markdown(
+                    f"<div style='text-align:center;font-weight:700;color:{col_c};"
+                    f"font-size:.9rem;margin-top:8px'>{ca}<br>"
+                    f"<span style='font-size:.78rem;opacity:.7'>{cds_a:,.1f} pb</span></div>",
+                    unsafe_allow_html=True)
+            with v2:
+                st.markdown(
+                    '<div class="vs-divider"><div class="vs-line"></div>'
+                    '<div class="vs-text">VS</div><div class="vs-line"></div></div>',
+                    unsafe_allow_html=True)
+            with b2:
+                render_flag_small(cb)
+                col_c = "#f87171" if cb!=cn else "#34d399"
+                st.markdown(
+                    f"<div style='text-align:center;font-weight:700;color:{col_c};"
+                    f"font-size:.9rem;margin-top:8px'>{cb}<br>"
+                    f"<span style='font-size:.78rem;opacity:.7'>{cds_b:,.1f} pb</span></div>",
+                    unsafe_allow_html=True)
+
+        # ── Perfil de riesgo ──────────────────────────────────────────────────
+        profile = get_risk_profile(sc)
+        st.markdown('<hr class="game-divider">', unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="text-align:center;color:#64748b;font-size:.8rem;'
+            f'text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">'
+            f'Tu perfil de riesgo soberano</div>',
+            unsafe_allow_html=True)
+        render_profile_card(profile, sc, bst)
+
+        # ── Envío de correo automático ────────────────────────────────────────
+        if not st.session_state.email_sent:
+            with st.spinner("Enviando resultados a tu correo..."):
+                ok = send_results_email(
+                    to_email=st.session_state.user_email,
+                    nombre=st.session_state.user_name,
+                    score=sc, best=bst,
+                    profile=profile,
+                    n_paises=len(df),
+                )
+            if ok:
+                st.session_state.email_sent = True
+                st.success(f"📧 Resultados enviados a **{st.session_state.user_email}**")
+            else:
+                st.warning(
+                    "⚠️ No se pudo enviar el correo. "
+                    "Verifica la configuración SMTP en `.streamlit/secrets.toml`."
+                )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        _, cb2, _ = st.columns([2, 3, 2])
+        with cb2:
+            if st.button("🔄 Jugar de nuevo", type="primary", use_container_width=True):
+                reset_game(); advance(); st.rerun()
+
+    elif not st.session_state.game_started:
+        st.markdown(
+            '<div class="welcome-box"><div class="welcome-icon">🎯</div>'
+            '<div class="welcome-text">Presiona <b>Iniciar juego</b> para comenzar</div>'
+            '<div class="welcome-sub">86 países · Datos reales de CDS · Bloomberg</div>'
+            '</div>', unsafe_allow_html=True)
+
+
+if __name__ == "__main__":
+    main()
