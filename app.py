@@ -150,36 +150,52 @@ section[data-testid="stSidebar"]{background:#0d1426;}
 .vs-text{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:#334155;letter-spacing:.15em;}
 .vs-line{width:1px;height:28px;background:linear-gradient(to bottom,transparent,#334155,transparent);margin:4px 0;}
 
-/* Tarjeta de bandera clickeable */
+/* Bandera decorativa */
 .flag-choice-card{
     position:relative;border-radius:16px;overflow:hidden;height:160px;
     box-shadow:0 6px 28px rgba(0,0,0,0.55);
     border:2px solid #1e293b;
-    cursor:pointer;
-    user-select:none;
     transition:border-color .2s, box-shadow .2s, transform .15s;
 }
-.flag-choice-card:hover{
-    border-color:rgba(255,255,255,0.85);
-    box-shadow:0 0 0 4px rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.6);
-    transform:scale(1.03);
-}
-.flag-choice-card:active{transform:scale(0.97);}
 .flag-choice-card img{width:100%;height:100%;object-fit:cover;display:block;}
 .fcc-gradient{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.3) 55%,rgba(0,0,0,0.05) 100%);}
 .fcc-name{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;text-shadow:0 2px 10px rgba(0,0,0,1);letter-spacing:-.2px;}
 .fcc-hint{position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);border-radius:20px;padding:3px 9px;font-size:.65rem;color:rgba(255,255,255,0.8);font-weight:600;letter-spacing:.05em;}
 .fcc-placeholder{width:100%;height:100%;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:3rem;}
 
-/* Tarjeta resultado (no clickeable) */
+/* Bandera resultado */
 .flag-result-card{position:relative;border-radius:16px;overflow:hidden;height:160px;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
 .flag-result-card img{width:100%;height:100%;object-fit:cover;display:block;}
 .flag-result-card .fcc-gradient{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.3) 55%,rgba(0,0,0,0.05) 100%);}
 .flag-result-card .fcc-name{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;text-shadow:0 2px 10px rgba(0,0,0,1);}
 
-/* Ocultar botones trigger ocultos en columnas de bandera */
+/* ── Botón transparente flotando sobre la bandera ── */
+div[data-testid="stColumn"]:has(.flag-choice-card){
+    position:relative !important;
+}
 div[data-testid="stColumn"]:has(.flag-choice-card) div[data-testid="stButton"]{
-    position:absolute;opacity:0;width:0;height:0;overflow:hidden;
+    position:absolute !important;
+    top:0 !important;left:0 !important;right:0 !important;
+    height:160px !important;
+    z-index:10 !important;
+    margin:0 !important;padding:0 !important;
+}
+div[data-testid="stColumn"]:has(.flag-choice-card) div[data-testid="stButton"]>button{
+    width:100% !important;height:100% !important;
+    opacity:0 !important;
+    background:transparent !important;
+    border:none !important;box-shadow:none !important;
+    cursor:pointer !important;
+    border-radius:16px !important;
+    padding:0 !important;margin:0 !important;
+}
+/* Hover/active en la bandera (activado por el botón encima) */
+div[data-testid="stColumn"]:has(.flag-choice-card) div[data-testid="stButton"]>button:hover
+  ~ * .flag-choice-card,
+div[data-testid="stColumn"]:has(.flag-choice-card):hover .flag-choice-card{
+    border-color:rgba(255,255,255,0.85) !important;
+    box-shadow:0 0 0 4px rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.6) !important;
+    transform:scale(1.03) !important;
 }
 
 div[data-testid="stButton"]>button{border-radius:12px!important;font-family:'DM Sans',sans-serif!important;font-weight:600!important;font-size:.9rem!important;padding:10px 16px!important;width:100%!important;transition:all .15s ease!important;border:1.5px solid #1e3a5f!important;background:linear-gradient(135deg,#0f2a4a,#0d1f3c)!important;color:#93c5fd!important;}
@@ -213,20 +229,15 @@ def render_flag_card(name, clickable=True, choice_key=""):
                 if flag_url else '<div class="fcc-placeholder">🏳️</div>')
 
     if clickable:
-        # onclick JS: climb DOM to stColumn, click its hidden button
-        onclick = (
-            "var c=this.closest('[data-testid=&quot;stColumn&quot;]');"
-            "if(c){var b=c.querySelector('button');if(b)b.click();}"
-        )
         st.markdown(f"""
-<div class="flag-choice-card" onclick="{onclick}">
+<div class="flag-choice-card">
   {img_html}
   <div class="fcc-gradient"></div>
   <div class="fcc-name">{name}</div>
   <div class="fcc-hint">👆 seleccionar</div>
 </div>""", unsafe_allow_html=True)
-        # Hidden trigger — CSS makes it invisible and zero-sized
-        return st.button(f"▶{choice_key}", key=f"flag_btn_{choice_key}")
+        # Botón transparente — CSS lo posiciona encima de la bandera
+        return st.button("​", key=f"flag_btn_{choice_key}", use_container_width=True)
     else:
         st.markdown(f"""
 <div class="flag-result-card">
@@ -256,7 +267,6 @@ def main():
     init_state()
     inject_css()
 
-    # Encabezado
     st.markdown(
         '<div class="game-header">'
         '<div class="game-title">¿Quién tiene mayor <span>riesgo país</span>?</div>'
@@ -271,7 +281,6 @@ def main():
         f'<div class="pill pill-countries">🌍 {n} países</div>'
         f'</div>', unsafe_allow_html=True)
 
-    # Sidebar
     with st.sidebar:
         st.markdown("### 📂 Datos")
         st.caption("Sube tu propio archivo Excel con CDS actualizados")
@@ -290,14 +299,12 @@ def main():
         st.divider()
         st.caption("**CDS** = Credit Default Swap. Mayor CDS = Mayor riesgo soberano.")
 
-    # Botón iniciar
     c1, c2, c3 = st.columns([2, 3, 2])
     with c2:
         label = "🎮 Nuevo juego" if st.session_state.game_started else "▶️ Iniciar juego"
         if st.button(label, type="primary", use_container_width=True):
             reset_game(); advance(); st.rerun()
 
-    # Ronda activa
     if st.session_state.game_started and not st.session_state.game_over:
         pair = st.session_state.current_pair
         if not pair:
@@ -318,7 +325,7 @@ def main():
         with col_b:
             clicked_b = render_flag_card(cb, clickable=st.session_state.round_active, choice_key="b")
 
-        # Procesar clic en bandera (sin navegación)
+        # Procesar clic — sin navegación, via WebSocket
         if st.session_state.round_active and (clicked_a or clicked_b):
             correct = ca if cds_a > cds_b else cb
             chosen = ca if clicked_a else cb
@@ -333,7 +340,6 @@ def main():
             st.session_state.round_active = False
             st.rerun()
 
-        # Respuesta correcta
         if st.session_state.feedback == "correct":
             cn = st.session_state.correct_country
             c_cds = df.loc[df["Pais"]==cn,"CDS"].values[0]
@@ -346,7 +352,6 @@ def main():
                 if st.button("Siguiente →", type="primary", use_container_width=True):
                     advance(); st.rerun()
 
-    # Game over
     if st.session_state.game_over:
         fb = st.session_state.feedback
         sc = st.session_state.score
