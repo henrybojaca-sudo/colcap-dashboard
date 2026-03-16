@@ -1,7 +1,7 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 import random
+import math, wave, struct, io
 
 st.set_page_config(
     page_title="CDS Challenge",
@@ -195,46 +195,34 @@ div[data-testid="stButton"]>button[kind="primary"]:hover{background:linear-gradi
     """, unsafe_allow_html=True)
 
 
+@st.cache_data
+def _tension_wav():
+    sr, secs = 11025, 40
+    frames = []
+    for i in range(sr * secs):
+        t = i / sr
+        # Low pulsing drone
+        drone = 0.028 * math.sin(2*math.pi*58*t) * (1 + 0.6*math.sin(2*math.pi*0.35*t))
+        # Double heartbeat every 1.25 s
+        bp = t % 1.25
+        b1 = 0.22 * math.exp(-bp*35) * math.sin(2*math.pi*190*bp) if bp < 0.18 else 0
+        b2 = 0.14 * math.exp(-(bp-0.22)*35) * math.sin(2*math.pi*140*(bp-0.22)) if 0.22 < bp < 0.40 else 0
+        s = max(-1.0, min(1.0, drone + b1 + b2))
+        frames.append(struct.pack('<h', int(s * 32767)))
+    buf = io.BytesIO()
+    with wave.open(buf, 'wb') as wf:
+        wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(sr)
+        wf.writeframes(b''.join(frames))
+    return buf.getvalue()
+
+
 def inject_tension_sound():
-    components.html("""<!DOCTYPE html><html><body style="margin:0;padding:0;background:transparent">
-<script>(function(){
-  try {
-    var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    var ctx = new AC();
-
-    /* --- low pulsing drone --- */
-    var drone = ctx.createOscillator();
-    var droneG = ctx.createGain();
-    var lfo    = ctx.createOscillator();
-    var lfoG   = ctx.createGain();
-    drone.type = 'sawtooth'; drone.frequency.value = 58;
-    lfo.type   = 'sine';     lfo.frequency.value   = 0.35;
-    lfoG.gain.value = 0.022; droneG.gain.value = 0.032;
-    lfo.connect(lfoG); lfoG.connect(droneG.gain);
-    drone.connect(droneG); droneG.connect(ctx.destination);
-    drone.start(); lfo.start();
-
-    /* --- heartbeat ticks --- */
-    function tick(t, f, g) {
-      var o = ctx.createOscillator(), e = ctx.createGain();
-      o.type = 'sine'; o.frequency.value = f;
-      e.gain.setValueAtTime(g, t);
-      e.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-      o.connect(e); e.connect(ctx.destination);
-      o.start(t); o.stop(t + 0.22);
-    }
-    function sched(s) {
-      for (var i = 0; i < 30; i++) {
-        tick(s + i*1.25,       195, 0.22);
-        tick(s + i*1.25 + 0.2, 145, 0.14);
-      }
-      return s + 30*1.25;
-    }
-    var nxt = sched(ctx.currentTime + 0.05);
-    setInterval(function(){ nxt = sched(nxt - 4); }, 28000);
-  } catch(e) {}
-})();</script></body></html>""", height=0)
+    # Hide the audio player widget
+    st.markdown(
+        '<style>[data-testid="stAudio"]{position:absolute;width:1px;height:1px;'
+        'overflow:hidden;opacity:0;pointer-events:none;}</style>',
+        unsafe_allow_html=True)
+    st.audio(_tension_wav(), format="audio/wav", autoplay=True)
 
 
 def render_flag_card(name, clickable=True, choice_key=""):
