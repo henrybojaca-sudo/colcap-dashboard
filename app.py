@@ -3,9 +3,7 @@ import pandas as pd
 import random
 import math, wave, struct, io
 import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.header import Header
+from email.message import EmailMessage
 
 st.set_page_config(
     page_title="CDS Challenge",
@@ -343,12 +341,12 @@ def send_results_email(to_email: str, nombre: str, score: int, best: int,
 </html>
 """
 
-    msg = MIMEMultipart("alternative")
     subject = f"Perfil {profile['nombre']} {profile['emoji']} - CDS Challenge | Posgrado en Finanzas"
-    msg["Subject"] = Header(subject, "utf-8")
+    msg = EmailMessage()
+    msg["Subject"] = subject
     msg["From"]    = smtp_user
     msg["To"]      = to_email
-    msg.attach(MIMEText(html, "html", "utf-8"))
+    msg.set_content(html, subtype="html", charset="utf-8")
 
     try:
         with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
