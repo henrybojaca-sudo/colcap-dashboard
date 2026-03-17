@@ -5,6 +5,7 @@ import math, wave, struct, io
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.header import Header
 
 st.set_page_config(
     page_title="CDS Challenge",
@@ -231,8 +232,8 @@ def send_results_email(to_email: str, nombre: str, score: int, best: int,
         smtp_pass = st.secrets["smtp"]["password"]
         smtp_host = st.secrets["smtp"].get("host", "smtp.gmail.com")
         smtp_port = int(st.secrets["smtp"].get("port", 587))
-    except Exception:
-        return False
+    except Exception as e:
+        return False, str(e)
 
     html = f"""
 <!DOCTYPE html>
@@ -343,7 +344,8 @@ def send_results_email(to_email: str, nombre: str, score: int, best: int,
 """
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"Perfil {profile['nombre']} {profile['emoji']} — CDS Challenge · Posgrado en Finanzas"
+    subject = f"Perfil {profile['nombre']} {profile['emoji']} - CDS Challenge | Posgrado en Finanzas"
+    msg["Subject"] = Header(subject, "utf-8")
     msg["From"]    = smtp_user
     msg["To"]      = to_email
     msg.attach(MIMEText(html, "html", "utf-8"))
@@ -354,9 +356,9 @@ def send_results_email(to_email: str, nombre: str, score: int, best: int,
             server.starttls()
             server.login(smtp_user, smtp_pass)
             server.send_message(msg)
-        return True
-    except Exception:
-        return False
+        return True, None
+    except Exception as e:
+        return False, str(e)
 
 
 # ── Datos ─────────────────────────────────────────────────────────────────────
@@ -766,7 +768,7 @@ def main():
         # ── Envío de correo automático ────────────────────────────────────────
         if not st.session_state.email_sent:
             with st.spinner("Enviando resultados a tu correo..."):
-                ok = send_results_email(
+                ok, email_err = send_results_email(
                     to_email=st.session_state.user_email,
                     nombre=st.session_state.user_name,
                     score=sc, best=bst,
@@ -777,10 +779,10 @@ def main():
                 st.session_state.email_sent = True
                 st.success(f"📧 Resultados enviados a **{st.session_state.user_email}**")
             else:
-                st.warning(
-                    "⚠️ No se pudo enviar el correo. "
-                    "Verifica la configuración SMTP en `.streamlit/secrets.toml`."
-                )
+                err_detail = f"\n\nError: {email_err}" if email_err else ""
+                st.error(f"No se pudo enviar el correo.{err_detail}")
+                if st.button("🔄 Reintentar envío", use_container_width=False):
+                    st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
         _, cb2, _ = st.columns([2, 3, 2])
