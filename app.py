@@ -353,7 +353,7 @@ def send_results_email(to_email: str, nombre: str, score: int, best: int,
             server.ehlo()
             server.starttls()
             server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_user, to_email, msg.as_string())
+            server.send_message(msg)
         return True
     except Exception:
         return False
