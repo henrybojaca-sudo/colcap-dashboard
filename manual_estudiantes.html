@@ -28,7 +28,7 @@
   body {
     font-family: 'Inter', sans-serif;
     background: var(--bg);
-    color: var(--text);
+    color: #f8fafc;
     line-height: 1.7;
   }
 
@@ -71,7 +71,7 @@
     padding: 6px 18px;
     font-size: 13px;
     font-weight: 700;
-    color: var(--teal);
+    color: #2dd4bf;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     margin-bottom: 32px;
@@ -99,7 +99,7 @@
     background-clip: text;
   }
   .cover-sub {
-    color: var(--muted);
+    color: #94a3b8;
     font-size: 1.2rem;
     max-width: 560px;
     margin: 0 auto 40px;
@@ -118,7 +118,7 @@
     padding: 8px 20px;
     font-size: 14px;
     font-weight: 600;
-    color: var(--muted);
+    color: #94a3b8;
   }
   .cover-scroll {
     color: var(--muted2);
@@ -158,12 +158,12 @@
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 800;
     font-size: 15px;
-    color: var(--teal);
+    color: #2dd4bf;
     margin-right: 10px;
     white-space: nowrap;
   }
   .toc-link {
-    color: var(--muted);
+    color: #94a3b8;
     text-decoration: none;
     font-size: 13px;
     font-weight: 600;
@@ -172,7 +172,7 @@
     transition: all .15s;
     white-space: nowrap;
   }
-  .toc-link:hover { background: rgba(45,212,191,0.1); color: var(--teal); }
+  .toc-link:hover { background: rgba(45,212,191,0.1); color: #2dd4bf; }
 
   /* ── SECTIONS ───────────────────────────────────────── */
   .section { padding: 80px 0; border-bottom: 1px solid var(--border); }
@@ -182,7 +182,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     font-weight: 600;
-    color: var(--teal);
+    color: #2dd4bf;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     margin-bottom: 12px;
@@ -209,7 +209,9 @@
     border-radius: 16px;
     padding: 28px;
     margin-bottom: 20px;
+    color: #e2e8f0;
   }
+  .mockup-body { color: #e2e8f0; }
   .card-teal { border-color: rgba(45,212,191,0.3); background: rgba(45,212,191,0.05); }
   .card-blue { border-color: rgba(14,165,233,0.3); background: rgba(14,165,233,0.05); }
   .card-yellow { border-color: rgba(250,204,21,0.3); background: rgba(250,204,21,0.05); }
@@ -934,28 +936,28 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
       <div class="card">
         <div style="font-size:1.4rem;margin-bottom:8px;">💰</div>
-        <div style="font-weight:800;margin-bottom:6px;">Capital Inicial</div>
+        <div style="font-weight:800;margin-bottom:6px;color:#f1f5f9;">Capital Inicial</div>
         <div style="color:var(--muted);font-size:0.9rem;">Siempre muestra $100M COP. Es el punto de partida de todos los grupos.</div>
       </div>
       <div class="card">
         <div style="font-size:1.4rem;margin-bottom:8px;">📦</div>
-        <div style="font-weight:800;margin-bottom:6px;">Invertido</div>
+        <div style="font-weight:800;margin-bottom:6px;color:#f1f5f9;">Invertido</div>
         <div style="color:var(--muted);font-size:0.9rem;">Valor actual de tus acciones según el precio de mercado del día. Cambia diariamente.</div>
       </div>
       <div class="card card-yellow">
         <div style="font-size:1.4rem;margin-bottom:8px;">💵</div>
-        <div style="font-weight:800;margin-bottom:6px;">Efectivo disponible</div>
+        <div style="font-weight:800;margin-bottom:6px;color:#f1f5f9;">Efectivo disponible</div>
         <div style="color:var(--muted);font-size:0.9rem;">Dinero sin invertir listo para comprar. <strong style="color:#facc15;">Debe ser $0 al cierre del día.</strong></div>
       </div>
       <div class="card">
         <div style="font-size:1.4rem;margin-bottom:8px;">📊</div>
-        <div style="font-weight:800;margin-bottom:6px;">Valor Total</div>
+        <div style="font-weight:800;margin-bottom:6px;color:#f1f5f9;">Valor Total</div>
         <div style="color:var(--muted);font-size:0.9rem;">Invertido + Efectivo. Este es tu portafolio total y el que determina tu posición en el ranking.</div>
       </div>
     </div>
     <div class="card card-green" style="margin-top:16px;">
       <div style="font-size:1.4rem;margin-bottom:8px;">📈</div>
-      <div style="font-weight:800;margin-bottom:6px;">Return %</div>
+      <div style="font-weight:800;margin-bottom:6px;color:#f1f5f9;">Return %</div>
       <div style="color:var(--muted);font-size:0.9rem;">
         <strong style="color:#4ade80;">Verde con +</strong> = estás ganando.<br>
         <strong style="color:#f87171;">Rojo con −</strong> = estás perdiendo.<br>
@@ -979,15 +981,15 @@
 
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;">
       <div class="card card-teal">
-        <div style="font-weight:800;margin-bottom:8px;">📊 Mi Portafolio</div>
+        <div style="font-weight:800;margin-bottom:8px;color:#f1f5f9;">📊 Mi Portafolio</div>
         <div style="color:var(--muted);font-size:0.9rem;">Ver todas tus posiciones actuales, su valor en pesos y el gráfico de distribución.</div>
       </div>
       <div class="card card-blue">
-        <div style="font-weight:800;margin-bottom:8px;">💱 Operar</div>
+        <div style="font-weight:800;margin-bottom:8px;color:#f1f5f9;">💱 Operar</div>
         <div style="color:var(--muted);font-size:0.9rem;">Comprar y vender activos. Aquí es donde ejecutas tus decisiones de inversión.</div>
       </div>
       <div class="card">
-        <div style="font-weight:800;margin-bottom:8px;">📜 Historial</div>
+        <div style="font-weight:800;margin-bottom:8px;color:#f1f5f9;">📜 Historial</div>
         <div style="color:var(--muted);font-size:0.9rem;">Ver todas las transacciones anteriores de tu grupo con fecha, activo y monto.</div>
       </div>
     </div>
