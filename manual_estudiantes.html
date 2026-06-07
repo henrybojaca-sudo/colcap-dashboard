@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual del Estudiante — Capital Markets Simulator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #0a0e27;
+    --bg2:       #141832;
+    --bg3:       #1e2a4a;
+    --border:    rgba(148,163,184,0.15);
+    --teal:      #2dd4bf;
+    --blue:      #0ea5e9;
+    --green:     #4ade80;
+    --yellow:    #facc15;
+    --red:       #f87171;
+    --purple:    #a855f7;
+    --text:      #f8fafc;
+    --muted:     #94a3b8;
+    --muted2:    #64748b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ── COVER ─────────────────────────────────────────── */
+  .cover {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0e27 0%, #141832 50%, #1a1245 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(45,212,191,0.08) 0%, transparent 70%);
+    top: -100px; left: -100px;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%);
+    bottom: -100px; right: -100px;
+  }
+  .cover-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(45,212,191,0.1);
+    border: 1px solid rgba(45,212,191,0.3);
+    border-radius: 99px;
+    padding: 6px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  .cover-icon {
+    width: 90px; height: 90px;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--blue) 100%);
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px;
+    margin: 0 auto 28px;
+    box-shadow: 0 20px 60px rgba(45,212,191,0.3);
+  }
+  .cover h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    margin-bottom: 16px;
+  }
+  .cover h1 span {
+    background: linear-gradient(90deg, var(--teal) 0%, var(--blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cover-sub {
+    color: var(--muted);
+    font-size: 1.2rem;
+    max-width: 560px;
+    margin: 0 auto 40px;
+  }
+  .cover-pills {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 48px;
+  }
+  .pill {
+    background: rgba(30,42,74,0.8);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .cover-scroll {
+    color: var(--muted2);
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce {
+    0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)}
+  }
+
+  /* ── LAYOUT ─────────────────────────────────────────── */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── NAV / TOC ──────────────────────────────────────── */
+  .toc {
+    background: linear-gradient(135deg, rgba(20,24,50,0.9) 0%, rgba(10,14,39,0.9) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .toc-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .toc-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--teal);
+    margin-right: 10px;
+    white-space: nowrap;
+  }
+  .toc-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 6px;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .toc-link:hover { background: rgba(45,212,191,0.1); color: var(--teal); }
+
+  /* ── SECTIONS ───────────────────────────────────────── */
+  .section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .section-lead {
+    color: var(--muted);
+    font-size: 1.1rem;
+    margin-bottom: 40px;
+    max-width: 620px;
+  }
+
+  /* ── CARDS ───────────────────────────────────────────── */
+  .card {
+    background: linear-gradient(135deg, rgba(30,41,59,0.7) 0%, rgba(20,24,50,0.7) 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card-teal { border-color: rgba(45,212,191,0.3); background: rgba(45,212,191,0.05); }
+  .card-blue { border-color: rgba(14,165,233,0.3); background: rgba(14,165,233,0.05); }
+  .card-yellow { border-color: rgba(250,204,21,0.3); background: rgba(250,204,21,0.05); }
+  .card-red { border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.05); }
+  .card-green { border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.05); }
+
+  /* ── STEPS ───────────────────────────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 20px; }
+  .step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--blue) 100%);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    color: #0a0e27;
+  }
+  .step-body {}
+  .step-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; }
+  .step-desc { color: var(--muted); font-size: 0.95rem; }
+
+  /* ── MOCKUP SCREENS ─────────────────────────────────── */
+  .mockup {
+    background: linear-gradient(135deg, #0a0e27 0%, #141832 100%);
+    border: 1px solid rgba(45,212,191,0.25);
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 28px 0;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .mockup-bar {
+    background: rgba(30,42,74,0.9);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .mockup-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+  }
+  .mockup-url {
+    flex: 1;
+    background: rgba(10,14,39,0.8);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 12px;
+  }
+  .mockup-body { padding: 28px; }
+
+  /* ── FORM MOCKUP ─────────────────────────────────────── */
+  .mock-input {
+    background: rgba(10,14,39,0.8);
+    border: 1px solid rgba(148,163,184,0.25);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 15px;
+    width: 100%;
+    margin-bottom: 12px;
+    font-family: 'Inter', sans-serif;
+  }
+  .mock-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 6px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .mock-btn {
+    background: linear-gradient(135deg, var(--teal) 0%, var(--blue) 100%);
+    color: #0a0e27;
+    font-weight: 900;
+    font-size: 15px;
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 8px;
+    width: 100%;
+    text-align: center;
+  }
+  .mock-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .mock-tab {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    background: rgba(20,24,50,0.6);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .mock-tab.active {
+    background: linear-gradient(135deg, rgba(45,212,191,0.2), rgba(14,165,233,0.2));
+    color: var(--teal);
+    border-color: rgba(45,212,191,0.3);
+  }
+
+  /* ── KPI GRID ────────────────────────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  @media(max-width:700px){ .kpi-grid{grid-template-columns: repeat(2,1fr);} }
+  .kpi-box {
+    background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(20,24,50,0.8));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+  }
+  .kpi-box.cash { border-color: rgba(250,204,21,0.3); background: rgba(250,204,21,0.08); }
+  .kpi-label { font-size: 11px; font-weight: 700; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .kpi-val { font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 900; }
+  .kpi-val.green { color: var(--green); }
+  .kpi-val.yellow { color: var(--yellow); }
+
+  /* ── TRADE PANEL ─────────────────────────────────────── */
+  .trade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  @media(max-width:600px){ .trade-grid{grid-template-columns:1fr;} }
+  .trade-panel {
+    background: rgba(10,14,39,0.8);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .trade-panel-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; }
+  .trade-panel-title.buy { color: var(--green); }
+  .trade-panel-title.sell { color: var(--red); }
+  .mock-select {
+    background: rgba(10,14,39,0.8);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 14px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .mock-caption {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: rgba(45,212,191,0.05);
+    border-radius: 8px;
+  }
+  .slider-track {
+    background: rgba(148,163,184,0.2);
+    height: 6px;
+    border-radius: 3px;
+    margin: 14px 0;
+    position: relative;
+  }
+  .slider-fill {
+    background: linear-gradient(90deg, var(--teal), var(--blue));
+    height: 100%;
+    border-radius: 3px;
+    width: 100%;
+  }
+
+  /* ── ALERT BOXES ─────────────────────────────────────── */
+  .alert {
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin: 20px 0;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .alert-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .alert-yellow { background: rgba(250,204,21,0.08); border-left: 4px solid var(--yellow); color: #fef3c7; }
+  .alert-red    { background: rgba(248,113,113,0.08); border-left: 4px solid var(--red);    color: #fecaca; }
+  .alert-teal   { background: rgba(45,212,191,0.08);  border-left: 4px solid var(--teal);   color: #ccfbf1; }
+  .alert-blue   { background: rgba(14,165,233,0.08);  border-left: 4px solid var(--blue);   color: #bae6fd; }
+
+  /* ── TABLE ───────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  th {
+    background: rgba(30,41,59,0.9);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 14px 16px;
+    text-align: left;
+  }
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  tr:hover td { background: rgba(45,212,191,0.04); }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .badge-red    { background: rgba(239,68,68,0.15);  color: #fca5a5; }
+  .badge-blue   { background: rgba(6,182,212,0.15);  color: #67e8f9; }
+  .badge-yellow { background: rgba(245,158,11,0.15); color: #fcd34d; }
+  .badge-purple { background: rgba(168,85,247,0.15); color: #d8b4fe; }
+  .badge-green  { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+  .badge-gray   { background: rgba(148,163,184,0.15);color: #cbd5e1; }
+
+  /* ── RULES GRID ──────────────────────────────────────── */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 16px;
+    margin: 28px 0;
+  }
+  @media(max-width:640px){ .rules-grid{grid-template-columns:1fr;} }
+  .rule-card {
+    background: rgba(20,24,50,0.6);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+  }
+  .rule-icon { font-size: 2rem; margin-bottom: 12px; }
+  .rule-title { font-weight: 800; font-size: 1rem; margin-bottom: 8px; }
+  .rule-desc { color: var(--muted); font-size: 0.9rem; }
+
+  /* ── FAQ ─────────────────────────────────────────────── */
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .faq-q {
+    padding: 18px 22px;
+    font-weight: 700;
+    font-size: 1rem;
+    background: rgba(20,24,50,0.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+  .faq-a {
+    padding: 18px 22px;
+    color: var(--muted);
+    font-size: 0.95rem;
+    border-top: 1px solid var(--border);
+    background: rgba(10,14,39,0.4);
+  }
+
+  /* ── HISTORY TABLE MOCK ──────────────────────────────── */
+  .hist-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .hist-action {
+    width: 56px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .hist-buy  { background: rgba(74,222,128,0.15);  color: var(--green); }
+  .hist-sell { background: rgba(248,113,113,0.15); color: var(--red);   }
+  .hist-ticker { font-family: 'JetBrains Mono', monospace; font-weight: 700; flex: 1; }
+  .hist-amount { color: var(--muted); font-size: 13px; }
+  .hist-time   { color: var(--muted2); font-size: 12px; }
+
+  /* ── CHECKLIST ────────────────────────────────────────── */
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .checklist li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 0.95rem;
+  }
+  .check-icon { flex-shrink: 0; margin-top: 2px; }
+
+  /* ── DIVIDER ─────────────────────────────────────────── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(45,212,191,0.3), transparent);
+    margin: 20px 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────── */
+  footer {
+    background: rgba(10,14,39,0.9);
+    border-top: 1px solid var(--border);
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--muted2);
+    font-size: 14px;
+  }
+  footer span { color: var(--teal); font-weight: 700; }
+
+  /* ── PRINT ───────────────────────────────────────────── */
+  @media print {
+    .toc { display: none; }
+    .section { page-break-inside: avoid; }
+    body { background: #fff; color: #000; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════ COVER -->
+<div class="cover">
+  <div class="cover-badge">📘 Manual del Estudiante</div>
+  <div class="cover-icon">📈</div>
+  <h1>Capital Markets<br><span>Simulator</span></h1>
+  <p class="cover-sub">
+    Guía completa para registrarte, invertir y competir con acciones reales
+    de la Bolsa de Valores de Colombia
+  </p>
+  <div class="cover-pills">
+    <div class="pill">🏦 20 Acciones BVC</div>
+    <div class="pill">💱 USD/COP</div>
+    <div class="pill">💰 100M COP inicial</div>
+    <div class="pill">🏆 Supera al COLCAP</div>
+  </div>
+  <div class="cover-scroll">
+    <span>Desplázate para comenzar</span>
+    <span>↓</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ NAV -->
+<nav class="toc">
+  <div class="toc-inner">
+    <div class="toc-logo">📈 CMS</div>
+    <a class="toc-link" href="#intro">Intro</a>
+    <a class="toc-link" href="#reglas">Reglas</a>
+    <a class="toc-link" href="#registro">Registro</a>
+    <a class="toc-link" href="#login">Ingreso</a>
+    <a class="toc-link" href="#dashboard">Dashboard</a>
+    <a class="toc-link" href="#portafolio">Portafolio</a>
+    <a class="toc-link" href="#operar">Operar</a>
+    <a class="toc-link" href="#historial">Historial</a>
+    <a class="toc-link" href="#activos">Activos</a>
+    <a class="toc-link" href="#faq">FAQ</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════ 1. INTRO -->
+<section class="section" id="intro">
+  <div class="container">
+    <div class="section-number">Sección 01</div>
+    <h2 class="section-title">¿Qué es el simulador?</h2>
+    <p class="section-lead">
+      Una plataforma online donde tu grupo invierte <strong>100 millones de pesos colombianos virtuales</strong>
+      en acciones reales de la BVC. Compiten contra otros grupos y contra el índice COLCAP.
+      Gana el grupo que genere el mayor retorno al final de la competencia.
+    </p>
+
+    <div class="rules-grid">
+      <div class="rule-card">
+        <div class="rule-icon">💰</div>
+        <div class="rule-title">Capital inicial</div>
+        <div class="rule-desc">Cada grupo arranca con <strong>$100.000.000 COP</strong> virtuales para invertir</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon">📊</div>
+        <div class="rule-title">Datos reales</div>
+        <div class="rule-desc">Los precios se toman de la <strong>Bolsa de Valores de Colombia</strong> en tiempo real</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon">🏆</div>
+        <div class="rule-title">Objetivo</div>
+        <div class="rule-desc">Obtener el mayor <strong>retorno porcentual</strong> al cierre de la competencia</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon">⚡</div>
+        <div class="rule-title">Benchmark</div>
+        <div class="rule-desc">Tu referencia es el <strong>COLCAP</strong> — supéralo para ganar puntos extra</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon">🔄</div>
+        <div class="rule-title">Operaciones</div>
+        <div class="rule-desc">Puedes <strong>comprar y vender</strong> diariamente entre las acciones disponibles</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon">👥</div>
+        <div class="rule-title">Por grupos</div>
+        <div class="rule-desc">Cada grupo tiene <strong>1 portafolio compartido</strong> — coordínense</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ 2. REGLAS -->
+<section class="section" id="reglas">
+  <div class="container">
+    <div class="section-number">Sección 02</div>
+    <h2 class="section-title">Reglas del juego</h2>
+    <p class="section-lead">Lean esto con cuidado antes de empezar. El incumplimiento puede afectar su calificación.</p>
+
+    <div class="card card-red">
+      <div class="alert alert-red" style="margin:0; background:transparent; border:none; padding:0;">
+        <div class="alert-icon">🚫</div>
+        <div>
+          <strong>Regla de oro: 100% invertido al cierre del día</strong><br>
+          No pueden dejar efectivo sin invertir cuando el mercado cierre. Si tienen saldo en efectivo, deben comprarlo todo antes del final de la jornada bursátil.
+        </div>
+      </div>
+    </div>
+
+    <br>
+
+    <div class="card">
+      <ul class="checklist">
+        <li>
+          <span class="check-icon">✅</span>
+          <div><strong>Un portafolio por grupo.</strong> Solo hay una cuenta por número de grupo. Coordínense para no hacer operaciones simultáneas.</div>
+        </li>
+        <li>
+          <span class="check-icon">✅</span>
+          <div><strong>Solo pueden invertir su efectivo disponible.</strong> No hay apalancamiento ni crédito — si no tienes efectivo, primero vende algo.</div>
+        </li>
+        <li>
+          <span class="check-icon">✅</span>
+          <div><strong>Los precios son de cierre del día anterior.</strong> El simulador toma el precio de cierre más reciente de Yahoo Finance / BVC.</div>
+        </li>
+        <li>
+          <span class="check-icon">✅</span>
+          <div><strong>Puedes operar en partes.</strong> No tienes que comprar una acción entera — puedes comprar fracciones usando montos en pesos.</div>
+        </li>
+        <li>
+          <span class="check-icon">✅</span>
+          <div><strong>No hay límite de operaciones diarias.</strong> Puedes comprar y vender tantas veces como quieras.</div>
+        </li>
+        <li>
+          <span class="check-icon">⚠️</span>
+          <div><strong>Guardar la contraseña.</strong> No hay recuperación de contraseña — si la pierden, contacten al profesor para hacer reset.</div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="alert alert-yellow">
+      <div class="alert-icon">⚠️</div>
+      <div>
+        La plataforma muestra un aviso en naranja cuando tienes más de $1.000 COP en efectivo sin invertir. <strong>¡Tómenlo como señal de alarma!</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ 3. REGISTRO -->
+<section class="section" id="registro">
+  <div class="container">
+    <div class="section-number">Sección 03</div>
+    <h2 class="section-title">Cómo registrar tu grupo</h2>
+    <p class="section-lead">
+      Solo se hace <strong>una vez</strong>. Un integrante del grupo completa el registro y luego comparte la contraseña con el resto.
+    </p>
+
+    <!-- MOCKUP: Pantalla de registro -->
+    <div class="mockup">
+      <div class="mockup-bar">
+        <div class="mockup-dot" style="background:#ef4444;"></div>
+        <div class="mockup-dot" style="background:#facc15;"></div>
+        <div class="mockup-dot" style="background:#4ade80;"></div>
+        <div class="mockup-url">perfil-riesgo-jxjrb6pmb6b29skm7xuetu.streamlit.app</div>
+      </div>
+      <div class="mockup-body">
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:start;">
+          <!-- Hero left -->
+          <div>
+            <div style="font-size:2rem;margin-bottom:10px;">💼</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:900;line-height:1.1;margin-bottom:10px;">
+              Invierte, compite,<br>
+              <span style="background:linear-gradient(90deg,#2dd4bf,#4ade80);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">gana el mercado</span>
+            </div>
+            <div style="color:#94a3b8;font-size:0.9rem;margin-bottom:16px;">Simulador con acciones reales de la BVC.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div style="background:rgba(20,24,50,0.6);border:1px solid #1e2a4a;border-radius:10px;padding:10px;text-align:center;border-top:3px solid #ef4444;">
+                <div style="font-size:1.3rem;">🛢️</div><div style="font-size:12px;color:#cbd5e1;font-weight:700;">Energía</div>
+              </div>
+              <div style="background:rgba(20,24,50,0.6);border:1px solid #1e2a4a;border-radius:10px;padding:10px;text-align:center;border-top:3px solid #06b6d4;">
+                <div style="font-size:1.3rem;">🏦</div><div style="font-size:12px;color:#cbd5e1;font-weight:700;">Financiero</div>
+              </div>
+              <div style="background:rgba(20,24,50,0.6);border:1px solid #1e2a4a;border-radius:10px;padding:10px;text-align:center;border-top:3px solid #a855f7;">
+                <div style="font-size:1.3rem;">🏢</div><div style="font-size:12px;color:#cbd5e1;font-weight:700;">Holdings</div>
+              </div>
+            </div>
+          </div>
+          <!-- Form right -->
+          <div>
+            <div class="mock-tabs">
+              <div class="mock-tab">🔐 Iniciar Sesión</div>
+              <div class="mock-tab active">📝 Registrar Grupo</div>
+            </div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:4px;">✨ Crea tu grupo</div>
+            <div style="color:#94a3b8;font-size:13px;margin-bottom:16px;">Empieza con 100 millones COP virtuales</div>
+
+            <label class="mock-label">Número de grupo</label>
+            <div class="mock-input" style="color:#2dd4bf;">3</div>
+
+            <label class="mock-label">Nickname del grupo</label>
+            <div class="mock-input" style="color:#94a3b8;">Los Toros de Wall Street</div>
+
+            <label class="mock-label">Nombre del capitán</label>
+            <div class="mock-input" style="color:#94a3b8;">María López</div>
+
+            <label class="mock-label">Contraseña (mín. 4 caracteres)</label>
+            <div class="mock-input" style="color:#94a3b8;">••••••••</div>
+
+            <label class="mock-label">Confirmar contraseña</label>
+            <div class="mock-input" style="color:#94a3b8;">••••••••</div>
+
+            <div class="mock-btn">Registrar Grupo →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Abre la aplicación en tu navegador</div>
+          <div class="step-desc">El profesor te dará el enlace de la plataforma. Ábrelo en Chrome o Firefox actualizado.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Selecciona la pestaña "Registrar Grupo"</div>
+          <div class="step-desc">En la pantalla de inicio verás dos pestañas. Haz clic en <strong>📝 Registrar Grupo</strong>.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Completa el formulario</div>
+          <div class="step-desc">
+            <strong>Número de grupo:</strong> El que asignó el profesor (ej: 3).<br>
+            <strong>Nickname:</strong> Un nombre creativo para su equipo (ej: "Los Toros de Wall Street").<br>
+            <strong>Capitán:</strong> El nombre del líder del grupo.<br>
+            <strong>Contraseña:</strong> Mínimo 4 caracteres. <em>Guárdenla en un lugar seguro.</em>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Haz clic en "Registrar Grupo →"</div>
+          <div class="step-desc">Si todo está correcto, verás un mensaje verde de confirmación: <em>"✅ Grupo X registrado. Ya puedes iniciar sesión."</em></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Comparte la contraseña con tu equipo</div>
+          <div class="step-desc">Todos los miembros del grupo usarán el <strong>mismo número de grupo y contraseña</strong> para acceder.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-teal">
+      <div class="alert-icon">💡</div>
+      <div>Si ves el mensaje <em>"El grupo X ya existe"</em>, significa que alguien ya lo registró. Simplemente ve a la pestaña <strong>Iniciar Sesión</strong> y usa la contraseña que eligieron.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ 4. LOGIN -->
+<section class="section" id="login">
+  <div class="container">
+    <div class="section-number">Sección 04</div>
+    <h2 class="section-title">Cómo iniciar sesión</h2>
+    <p class="section-lead">Una vez registrados, así acceden a su portafolio cada vez que entren a la plataforma.</p>
+
+    <div class="mockup">
+      <div class="mockup-bar">
+        <div class="mockup-dot" style="background:#ef4444;"></div>
+        <div class="mockup-dot" style="background:#facc15;"></div>
+        <div class="mockup-dot" style="background:#4ade80;"></div>
+        <div class="mockup-url">capital-markets-simulator.streamlit.app</div>
+      </div>
+      <div class="mockup-body">
+        <div style="max-width:340px;margin:0 auto;">
+          <div class="mock-tabs" style="justify-content:center;">
+            <div class="mock-tab active">🔐 Iniciar Sesión</div>
+            <div class="mock-tab">📝 Registrar Grupo</div>
+          </div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:4px;">🚀 Bienvenido</div>
+          <div style="color:#94a3b8;font-size:13px;margin-bottom:20px;">Accede con tu grupo y contraseña</div>
+
+          <label class="mock-label">Número de grupo</label>
+          <div class="mock-input" style="color:#2dd4bf;">3</div>
+
+          <label class="mock-label">Contraseña</label>
+          <div class="mock-input" style="color:#94a3b8;">••••••••</div>
+
+          <div class="mock-btn">Iniciar Sesión →</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Selecciona la pestaña "🔐 Iniciar Sesión"</div>
+          <div class="step-desc">Esta es la pestaña por defecto al abrir la app.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Ingresa el número de grupo</div>
+          <div class="step-desc">El número asignado por el profesor. Usa las flechas o escríbelo directamente.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Ingresa la contraseña</div>
+          <div class="step-desc">La contraseña que eligieron al registrarse. Recuerda que es sensible a mayúsculas.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Haz clic en "Iniciar Sesión →"</div>
+          <div class="step-desc">Si las credenciales son correctas, entrarás directamente al panel de tu grupo.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-red">
+      <div class="alert-icon">🚫</div>
+      <div><strong>Error: "Credenciales incorrectas"</strong> — Verifica el número de grupo y que no haya espacios extra en la contraseña. Si olvidaron la contraseña, contacten al profesor.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ 5. DASHBOARD -->
+<section class="section" id="dashboard">
+  <div class="container">
+    <div class="section-number">Sección 05</div>
+    <h2 class="section-title">Panel principal</h2>
+    <p class="section-lead">Al ingresar, verás el encabezado de tu grupo y 5 indicadores clave de tu portafolio.</p>
+
+    <!-- Header mockup -->
+    <div class="mockup">
+      <div class="mockup-bar">
+        <div class="mockup-dot" style="background:#ef4444;"></div>
+        <div class="mockup-dot" style="background:#facc15;"></div>
+        <div class="mockup-dot" style="background:#4ade80;"></div>
+        <div class="mockup-url">capital-markets-simulator.streamlit.app</div>
+      </div>
+      <div class="mockup-body">
+        <!-- Group header -->
+        <div style="background:linear-gradient(135deg,rgba(45,212,191,0.1),rgba(14,165,233,0.05));border:1px solid rgba(45,212,191,0.2);border-radius:14px;padding:18px 24px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:900;">📈 Grupo 3 — Los Toros de Wall Street</div>
+            <div style="color:#94a3b8;font-size:0.9rem;margin-top:4px;">Capitán: María López</div>
+          </div>
+          <div style="background:rgba(30,41,59,0.8);border:1px solid #1e2a4a;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;color:#94a3b8;">Cerrar Sesión</div>
+        </div>
+
+        <!-- KPI row -->
+        <div class="kpi-grid">
+          <div class="kpi-box">
+            <div class="kpi-label">Capital Inicial</div>
+            <div class="kpi-val">$100M</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Invertido</div>
+            <div class="kpi-val">$82.40M</div>
+          </div>
+          <div class="kpi-box cash">
+            <div class="kpi-label">💵 Efectivo</div>
+            <div class="kpi-val yellow">$17.60M</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Valor Total</div>
+            <div class="kpi-val">$104.32M</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-label">Return</div>
+            <div class="kpi-val green">+4.32%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Explanation of each KPI -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="card">
+        <div style="font-size:1.4rem;margin-bottom:8px;">💰</div>
+        <div style="font-weight:800;margin-bottom:6px;">Capital Inicial</div>
+        <div style="color:var(--muted);font-size:0.9rem;">Siempre muestra $100M COP. Es el punto de partida de todos los grupos.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:1.4rem;margin-bottom:8px;">📦</div>
+        <div style="font-weight:800;margin-bottom:6px;">Invertido</div>
+        <div style="color:var(--muted);font-size:0.9rem;">Valor actual de tus acciones según el precio de mercado del día. Cambia diariamente.</div>
+      </div>
+      <div class="card card-yellow">
+        <div style="font-size:1.4rem;margin-bottom:8px;">💵</div>
+        <div style="font-weight:800;margin-bottom:6px;">Efectivo disponible</div>
+        <div style="color:var(--muted);font-size:0.9rem;">Dinero sin invertir listo para comprar. <strong style="color:#facc15;">Debe ser $0 al cierre del día.</strong></div>
+      </div>
+      <div class="card">
+        <div style="font-size:1.4rem;margin-bottom:8px;">📊</div>
+        <div style="font-weight:800;margin-bottom:6px;">Valor Total</div>
+        <div style="color:var(--muted);font-size:0.9rem;">Invertido + Efectivo. Este es tu portafolio total y el que determina tu posición en el ranking.</div>
+      </div>
+    </div>
+    <div class="card card-green" style="margin-top:16px;">
+      <div style="font-size:1.4rem;margin-bottom:8px;">📈</div>
+      <div style="font-weight:800;margin-bottom:6px;">Return %</div>
+      <div style="color:var(--muted);font-size:0.9rem;">
+        <strong style="color:#4ade80;">Verde con +</strong> = estás ganando.<br>
+        <strong style="color:#f87171;">Rojo con −</strong> = estás perdiendo.<br>
+        Fórmula: <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;">(Valor Total / 100.000.000 − 1) × 100</code>
+      </div>
+    </div>
+
+    <!-- Tabs explanation -->
+    <div class="divider" style="margin:32px 0;"></div>
+    <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:16px;">Pestañas de navegación</h3>
+
+    <div class="mockup">
+      <div class="mockup-body" style="padding:16px 28px;">
+        <div class="mock-tabs" style="margin-bottom:0;">
+          <div class="mock-tab active">📊 Mi Portafolio</div>
+          <div class="mock-tab">💱 Operar</div>
+          <div class="mock-tab">📜 Historial</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;">
+      <div class="card card-teal">
+        <div style="font-weight:800;margin-bottom:8px;">📊 Mi Portafolio</div>
+        <div style="color:var(--muted);font-size:0.9rem;">Ver todas tus posiciones actuales, su valor en pesos y el gráfico de distribución.</div>
+      </div>
+      <div class="card card-blue">
+        <div style="font-weight:800;margin-bottom:8px;">💱 Operar</div>
+        <div style="color:var(--muted);font-size:0.9rem;">Comprar y vender activos. Aquí es donde ejecutas tus decisiones de inversión.</div>
+      </div>
+      <div class="card">
+        <div style="font-weight:800;margin-bottom:8px;">📜 Historial</div>
+        <div style="color:var(--muted);font-size:0.9rem;">Ver todas las transacciones anteriores de tu grupo con fecha, activo y monto.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ 6. PORTAFOLIO -->
+<section class="section" id="portafolio">
+  <div class="container">
+    <div class="section-number">Sección 06</div>
+    <h2 class="section-title">Mi Portafolio</h2>
+    <p class="section-lead">La pestaña de portafolio muestra todas tus posiciones actuales y cómo están distribuidas.</p>
+
+    <div class="mockup">
+      <div class="mockup-bar">
+        <div class="mockup-dot" style="background:#ef4444;"></div>
+        <div class="mockup-dot" style="background:#facc15;"></div>
+        <div class="mockup-dot" style="background:#4ade80;"></div>
+        <div class="mockup-url">📊 Mi Portafolio</div>
+      </div>
+      <div class="mockup-body">
+        <table style="margin:0;">
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Nombre</th>
+              <th>Sector</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+              <th>Valor (COP)</th>
+              <th>Peso %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code style="color:#2dd4bf;font-weight:700;">ECOPETL.CL</code></td>
+              <td>Ecopetrol</td>
+              <td><span class="badge badge-red">Energía</span></td>
+              <td>4,285.71</td>
+              <td>$2,800</td>
+              <td><strong>$12.000.000</strong></td>
+              <td>29.5%</td>
+            </tr>
+            <tr>
+              <td><code style="color:#2dd4bf;font-weight:700;">ISA.CL</code></td>
+              <td>ISA</td>
+              <td><span class="badge badge-yellow">Utilities</span></td>
+              <td>1,818.18</td>
+              <td>$16,500</td>
+              <td><strong>$30.000.000</strong></td>
+              <td>37.1%</td>
+            </tr>
+            <tr>
+              <td><code style="color:#2dd4bf;font-weight:700;">NUTRESA.CL</code></td>
+              <td>Nutresa</td>
+              <td><span class="badge badge-green">Consumo</span></td>
+              <td>3,050.00</td>
+              <td>$13,200</td>
+              <td><strong>$40.260.000</strong></td>
+              <td>33.4%</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:20px;text-align:center;">
+          <div style="display:inline-block;width:180px;height:180px;border-radius:50%;background:conic-gradient(#2dd4bf 0% 29.5%, #f59e0b 29.5% 66.6%, #10b981 66.6% 100%);position:relative;">
+            <div style="position:absolute;inset:30px;background:var(--bg2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:1.1rem;">$80.26M</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+      <h4 style="font-weight:800;margin-bottom:16px;">Cómo leer la tabla</h4>
+      <ul class="checklist">
+        <li><span class="check-icon">📌</span><div><strong>Ticker:</strong> Símbolo bursátil del activo en la BVC (ej: ECOPETL.CL para Ecopetrol).</div></li>
+        <li><span class="check-icon">📌</span><div><strong>Cantidad:</strong> Fracciones de acciones que posees. Pueden ser decimales (ej: 4.285,71).</div></li>
+        <li><span class="check-icon">📌</span><div><strong>Precio:</strong> Precio de cierre más reciente de la BVC en pesos colombianos.</div></li>
+        <li><span class="check-icon">📌</span><div><strong>Valor (COP):</strong> Cantidad × Precio = cuánto vale esa posición hoy.</div></li>
+        <li><span class="check-icon">📌</span><div><strong>Peso %:</strong> Qué porcentaje del total invertido representa ese activo.</div></li>
+      </ul>
+    </div>
+
+    <div class="alert alert-blue">
+      <div class="alert-icon">💡</div>
+      <div>Si aún no tienes posiciones, verás el mensaje: <em>"Aún no tienes posiciones. Ve a Operar para hacer tu primera inversión."</em> — ¡Es normal al inicio!</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ 7. OPERAR -->
+<section class="section" id="operar">
+  <div class="container">
+    <div class="section-number">Sección 07</div>
+    <h2 class="section-title">Cómo operar: comprar y vender</h2>
+    <p class="section-lead">La pestaña <strong>💱 Operar</strong> está dividida en dos paneles: izquierda para comprar y derecha para vender.</p>
+
+    <!-- EFECTIVO BADGE MOCKUP -->
+    <div style="background:linear-gradient(135deg,rgba(250,204,21,0.15),rgba(245,158,11,0.08));border:1px solid rgba(250,204,21,0.3);border-radius:12px;padding:20px 26px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div>
+        <div style="color:#fde68a;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">💵 Efectivo Disponible</div>
+        <div style="color:#94a3b8;font-size:13px;">Solo puedes comprar hasta este monto</div>
+      </div>
+      <div style="font-family:'Space Grotesk',sans-serif;color:#facc15;font-size:2rem;font-weight:900;">$17.600.000 COP</div>
+    </div>
+
+    <div class="trade-grid">
+      <!-- BUY PANEL -->
+      <div>
+        <div class="trade-panel-title buy">🟢 Comprar</div>
+        <div class="mockup" style="margin:0;">
+          <div class="mockup-body">
+            <label class="mock-label">Activo a comprar</label>
+            <select class="mock-select">
+              <option>ECOPETL.CL — Ecopetrol</option>
+            </select>
+
+            <div class="mock-caption">💰 Precio: <strong>$2.800,00</strong> (2025-11-14)</div>
+
+            <label class="mock-label">Monto a invertir (máx. $17.600.000)</label>
+            <div class="mock-input" style="color:#2dd4bf;">10.000.000</div>
+
+            <div style="margin:8px 0;">
+              <div style="background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.3);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;color:#7dd3fc;text-align:center;">💯 Usar todo</div>
+            </div>
+
+            <div class="mock-caption">📦 Cantidad: <strong>3.571,4286</strong> unidades</div>
+
+            <div class="mock-btn">Ejecutar Compra →</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SELL PANEL -->
+      <div>
+        <div class="trade-panel-title sell">🔴 Vender</div>
+        <div class="mockup" style="margin:0;">
+          <div class="mockup-body">
+            <label class="mock-label">Activo a vender</label>
+            <select class="mock-select">
+              <option>ISA.CL — Interconexión Eléctrica</option>
+            </select>
+
+            <div class="mock-caption">📦 En cartera: <strong>1.818,1818</strong></div>
+            <div class="mock-caption">💰 Valor: <strong>$30.000.000</strong></div>
+
+            <label class="mock-label">% a vender</label>
+            <div style="margin:8px 0;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;margin-bottom:4px;"><span>0%</span><span style="color:#2dd4bf;font-weight:700;">50%</span><span>100%</span></div>
+              <div class="slider-track"><div class="slider-fill" style="width:50%;"></div></div>
+            </div>
+
+            <div class="mock-caption">💵 Recibirás: <strong>$15.000.000</strong></div>
+
+            <div class="mock-btn" style="background:linear-gradient(135deg,#f87171,#fb923c);">Ejecutar Venta →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPRA STEPS -->
+    <div class="divider" style="margin:36px 0;"></div>
+    <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:20px;">Paso a paso: COMPRAR</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Verifica tu efectivo disponible</div>
+          <div class="step-desc">El monto en amarillo arriba muestra cuánto dinero tienes libre para invertir. No puedes comprar más que ese monto.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Selecciona el activo en el menú desplegable</div>
+          <div class="step-desc">Verás el nombre y ticker de cada activo. El precio de cierre del último día de mercado se muestra automáticamente.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Ingresa el monto en pesos que quieres invertir</div>
+          <div class="step-desc">Escribe la cantidad en COP (ej: 10.000.000). El simulador calculará automáticamente las fracciones de acciones que recibirás. También puedes usar <strong>"💯 Usar todo"</strong> para invertir todo tu efectivo de un golpe.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Confirma la cantidad de unidades</div>
+          <div class="step-desc">Revisa el campo <em>"📦 Cantidad"</em> para ver cuántas acciones (o fracciones) recibirás con ese monto.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Haz clic en "Ejecutar Compra →"</div>
+          <div class="step-desc">Si la operación es exitosa, verás <em>"✅ Comprado: X unidades de TICKER"</em> y la página se actualizará automáticamente.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VENTA STEPS -->
+    <div class="divider" style="margin:36px 0;"></div>
+    <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:20px;">Paso a paso: VENDER</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Selecciona el activo que quieres vender</div>
+          <div class="step-desc">El menú solo muestra los activos que tienes en cartera con cantidad mayor a 0.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Elige qué porcentaje vender con el deslizador</div>
+          <div class="step-desc">El slider va de 0% a 100% en pasos de 10%. Selecciona el porcentaje de tu posición que quieres liquidar. El simulador muestra en tiempo real cuántos pesos recibirás.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Haz clic en "Ejecutar Venta →"</div>
+          <div class="step-desc">El efectivo obtenido se añade a tu saldo disponible inmediatamente.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIPS OPERACIONES -->
+    <div style="margin-top:32px;">
+      <div class="alert alert-teal">
+        <div class="alert-icon">💡</div>
+        <div><strong>Quiero invertir todo mi efectivo en un solo activo:</strong> Selecciona el activo, luego haz clic en <strong>"💯 Usar todo"</strong>. El monto se llenará automáticamente con tu efectivo disponible.</div>
+      </div>
+      <div class="alert alert-yellow">
+        <div class="alert-icon">⚠️</div>
+        <div><strong>¿El precio muestra "no disponible"?</strong> Recarga la página con F5. Puede ocurrir si Yahoo Finance tiene datos tardíos o si el mercado está cerrado.</div>
+      </div>
+      <div class="alert alert-red">
+        <div class="alert-icon">🚫</div>
+        <div><strong>No puedo comprar aunque tengo efectivo:</strong> Asegúrate de que el monto ingresado sea mayor a 0 y no supere tu saldo disponible. El monto mínimo por operación es de $100.000 COP.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ 8. HISTORIAL -->
+<section class="section" id="historial">
+  <div class="container">
+    <div class="section-number">Sección 08</div>
+    <h2 class="section-title">Historial de operaciones</h2>
+    <p class="section-lead">La pestaña <strong>📜 Historial</strong> muestra un registro cronológico de todas las transacciones de tu grupo.</p>
+
+    <div class="mockup">
+      <div class="mockup-bar">
+        <div class="mockup-dot" style="background:#ef4444;"></div>
+        <div class="mockup-dot" style="background:#facc15;"></div>
+        <div class="mockup-dot" style="background:#4ade80;"></div>
+        <div class="mockup-url">📜 Historial</div>
+      </div>
+      <div class="mockup-body">
+        <div class="hist-row" style="border-top:1px solid var(--border);">
+          <div class="hist-action hist-buy">BUY</div>
+          <div class="hist-ticker">ECOPETL.CL</div>
+          <div style="flex:1;color:var(--muted);font-size:13px;">4.285,71 und. @ $2.800</div>
+          <div class="hist-amount">$12.000.000</div>
+          <div class="hist-time">2025-11-14 09:35</div>
+        </div>
+        <div class="hist-row">
+          <div class="hist-action hist-buy">BUY</div>
+          <div class="hist-ticker">ISA.CL</div>
+          <div style="flex:1;color:var(--muted);font-size:13px;">1.818,18 und. @ $16.500</div>
+          <div class="hist-amount">$30.000.000</div>
+          <div class="hist-time">2025-11-14 09:42</div>
+        </div>
+        <div class="hist-row">
+          <div class="hist-action hist-sell">SELL</div>
+          <div class="hist-ticker">ECOPETL.CL</div>
+          <div style="flex:1;color:var(--muted);font-size:13px;">2.142,86 und. @ $2.950</div>
+          <div class="hist-amount">$6.321.437</div>
+          <div class="hist-time">2025-11-15 10:18</div>
+        </div>
+        <div class="hist-row">
+          <div class="hist-action hist-buy">BUY</div>
+          <div class="hist-ticker">NUTRESA.CL</div>
+          <div style="flex:1;color:var(--muted);font-size:13px;">3.050,00 und. @ $13.200</div>
+          <div class="hist-amount">$40.260.000</div>
+          <div class="hist-time">2025-11-15 10:25</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+      <h4 style="font-weight:800;margin-bottom:16px;">Cómo leer el historial</h4>
+      <ul class="checklist">
+        <li><span class="check-icon" style="color:#4ade80;">■</span><div><strong>BUY (verde):</strong> Operación de compra — gastaste efectivo para adquirir acciones.</div></li>
+        <li><span class="check-icon" style="color:#f87171;">■</span><div><strong>SELL (rojo):</strong> Operación de venta — liquidaste acciones y recibiste efectivo.</div></li>
+        <li><span class="check-icon">📌</span><div><strong>Timestamp:</strong> Fecha y hora exacta en que se ejecutó la operación (zona horaria Colombia).</div></li>
+        <li><span class="check-icon">📌</span><div><strong>Quantity:</strong> Número de unidades (o fracciones) de la acción operada.</div></li>
+        <li><span class="check-icon">📌</span><div><strong>Price:</strong> Precio de la acción en el momento de la operación.</div></li>
+        <li><span class="check-icon">📌</span><div><strong>Amount:</strong> Monto total de la transacción en COP (Quantity × Price).</div></li>
+      </ul>
+    </div>
+
+    <div class="alert alert-blue">
+      <div class="alert-icon">💡</div>
+      <div>El historial está ordenado de más reciente a más antiguo. Si aún no tienes operaciones, verás: <em>"📭 Sin operaciones todavía"</em>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ 9. ACTIVOS -->
+<section class="section" id="activos">
+  <div class="container">
+    <div class="section-number">Sección 09</div>
+    <h2 class="section-title">Activos disponibles para invertir</h2>
+    <p class="section-lead">Tienes 21 instrumentos disponibles: 20 acciones de la BVC + el tipo de cambio USD/COP.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Empresa</th>
+          <th>Sector</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">ECOPETROL.CL</code></td><td>Ecopetrol</td><td><span class="badge badge-red">Energía</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">CIBEST.CL</code></td><td>Cibest (ex Bancolombia)</td><td><span class="badge badge-blue">Financiero</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">PFCIBEST.CL</code></td><td>PF Cibest</td><td><span class="badge badge-blue">Financiero</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">BVC.CL</code></td><td>Bolsa de Valores de Colombia</td><td><span class="badge badge-blue">Financiero</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">GRUPOSURA.CL</code></td><td>Grupo Sura</td><td><span class="badge badge-purple">Holding</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">PFGRUPSURA.CL</code></td><td>PF Grupo Sura</td><td><span class="badge badge-purple">Holding</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">ISA.CL</code></td><td>Interconexión Eléctrica (ISA)</td><td><span class="badge badge-yellow">Utilities</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">GEB.CL</code></td><td>Grupo Energía Bogotá</td><td><span class="badge badge-yellow">Utilities</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">CELSIA.CL</code></td><td>Celsia</td><td><span class="badge badge-yellow">Utilities</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">GRUPOARGOS.CL</code></td><td>Grupo Argos</td><td><span class="badge badge-purple">Holding</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">PFGRUPOARG.CL</code></td><td>PF Grupo Argos</td><td><span class="badge badge-purple">Holding</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">CEMARGOS.CL</code></td><td>Cementos Argos</td><td><span class="badge badge-gray">Materiales</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">PFCEMARGOS.CL</code></td><td>PF Cementos Argos</td><td><span class="badge badge-gray">Materiales</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">PFAVAL.CL</code></td><td>PF Aval</td><td><span class="badge badge-blue">Financiero</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">PFDAVVNDA.CL</code></td><td>PF Davivienda</td><td><span class="badge badge-blue">Financiero</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">CORFICOLCF.CL</code></td><td>Corficolombiana</td><td><span class="badge badge-blue">Financiero</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">MINEROS.CL</code></td><td>Mineros</td><td><span class="badge badge-gray">Minería</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">NUTRESA.CL</code></td><td>Nutresa</td><td><span class="badge badge-green">Consumo</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">TERPEL.CL</code></td><td>Terpel</td><td><span class="badge badge-red">Energía</span></td></tr>
+        <tr><td><code style="color:#2dd4bf;font-family:'JetBrains Mono',monospace;">PROMIGAS.CL</code></td><td>Promigas</td><td><span class="badge badge-yellow">Utilities</span></td></tr>
+        <tr style="background:rgba(250,204,21,0.05);"><td><code style="color:#facc15;font-family:'JetBrains Mono',monospace;">USDCOP=X</code></td><td><strong>Dólar estadounidense / Peso COP</strong></td><td><span class="badge badge-yellow">Divisas</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="alert alert-blue">
+      <div class="alert-icon">💡</div>
+      <div>
+        <strong>Sobre el USD/COP:</strong> Puedes invertir en dólares como cobertura cambiaria. Si el dólar sube frente al peso, tu posición en USD/COP gana valor en COP. Es una estrategia de diversificación válida.
+      </div>
+    </div>
+
+    <div class="alert alert-yellow">
+      <div class="alert-icon">⚠️</div>
+      <div>
+        <strong>Las "PF" son acciones preferenciales.</strong> Tienen derechos económicos similares a las ordinarias pero generalmente mayor liquidez y dividendo preferencial. Son un tipo de instrumento diferente aunque del mismo emisor.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ 10. FAQ -->
+<section class="section" id="faq">
+  <div class="container">
+    <div class="section-number">Sección 10</div>
+    <h2 class="section-title">Preguntas frecuentes</h2>
+    <p class="section-lead">Las dudas más comunes de los estudiantes, resueltas.</p>
+
+    <div class="faq-item">
+      <div class="faq-q">¿Puedo cambiar la contraseña de mi grupo? <span>→</span></div>
+      <div class="faq-a">No existe función de cambio de contraseña en la plataforma. Si necesitan cambiarla, el profesor puede hacer un reset del grupo. Elijan una contraseña desde el principio que recuerden bien.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">¿Qué pasa si el precio de un activo aparece como "no disponible"? <span>→</span></div>
+      <div class="faq-a">Esto ocurre cuando Yahoo Finance no tiene el precio de cierre del día (mercado cerrado, festivo, o retraso en datos). Solución: recarga la página con F5 o espera unos minutos y vuelve a intentarlo. Si persiste, elige otro activo por ese momento.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">¿Puedo tener efectivo en mi portafolio? <span>→</span></div>
+      <div class="faq-a">Sí, puedes tener efectivo temporalmente durante el día. Sin embargo, la regla de la competencia exige estar <strong>100% invertido al cierre</strong>. Si tienes saldo, la plataforma te avisará con un banner amarillo.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">¿Cómo se calcula mi retorno? <span>→</span></div>
+      <div class="faq-a">Retorno % = (Valor Total Actual / $100.000.000 − 1) × 100. El Valor Total incluye el valor de mercado de tus acciones más el efectivo disponible.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">¿Puedo invertir en acciones internacionales? <span>→</span></div>
+      <div class="faq-a">No directamente. Solo están disponibles los activos del menú (acciones BVC + USD/COP). El USD/COP es la única manera de tener exposición a activos en dólares.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">¿Cuándo se actualiza el precio de las acciones? <span>→</span></div>
+      <div class="faq-a">Los precios se actualizan con el cierre de la bolsa de cada día. El mercado colombiano opera de lunes a viernes (excepto festivos) de 9:00 a.m. a 3:30 p.m. (hora Colombia). Los fines de semana y festivos se usa el último precio de cierre disponible.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">¿Dos integrantes pueden operar al mismo tiempo? <span>→</span></div>
+      <div class="faq-a">Es posible, pero no recomendado. Si dos personas intentan comprar simultáneamente, puede haber conflictos en el saldo. Lo ideal es que operen de a uno o que el capitán coordine las decisiones.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">¿Dónde veo el ranking vs otros grupos? <span>→</span></div>
+      <div class="faq-a">El ranking y comparativo contra el COLCAP está en el panel del profesor. El profesor puede compartir esa vista o proyectarla en clase. Los estudiantes no tienen acceso directo al panel del profesor.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">¿Qué significa que "la cantidad son decimales"? <span>→</span></div>
+      <div class="faq-a">El simulador permite comprar fracciones de acciones. Por ejemplo, si inviertes $5.000.000 en una acción que vale $3.700 cada una, recibirás 1.351,35 acciones (fracción). Esto es diferente al mercado real donde solo se compran acciones enteras, pero facilita el aprendizaje al poder invertir cualquier monto.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">La página se congela o muestra un error ¿qué hago? <span>→</span></div>
+      <div class="faq-a">Primero intenta recargar con F5. Si el error persiste, cierra sesión con el botón "Cerrar Sesión" y vuelve a ingresar. Si el problema continúa, comunícate con el profesor con una captura de pantalla del error.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ FOOTER -->
+<footer>
+  <div style="font-size:2rem;margin-bottom:12px;">📈</div>
+  <div style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:8px;">
+    Capital Markets Simulator
+  </div>
+  <div>Manual del Estudiante · <span>Bolsa de Valores de Colombia</span></div>
+  <br>
+  <div style="font-size:12px;color:#475569;">
+    Los datos provienen de Yahoo Finance (BVC). Los precios tienen un retraso de un día de mercado.
+    Este es un simulador educativo — ninguna operación tiene valor financiero real.
+  </div>
+</footer>
+
+</body>
+</html>
