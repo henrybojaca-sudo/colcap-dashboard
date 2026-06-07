@@ -193,9 +193,10 @@
     font-weight: 900;
     line-height: 1.1;
     margin-bottom: 16px;
+    color: #f8fafc;
   }
   .section-lead {
-    color: var(--muted);
+    color: #94a3b8;
     font-size: 1.1rem;
     margin-bottom: 40px;
     max-width: 620px;
@@ -234,8 +235,8 @@
     color: #0a0e27;
   }
   .step-body {}
-  .step-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; }
-  .step-desc { color: var(--muted); font-size: 0.95rem; }
+  .step-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; color: #f1f5f9; }
+  .step-desc { color: #94a3b8; font-size: 0.95rem; }
 
   /* ── MOCKUP SCREENS ─────────────────────────────────── */
   .mockup {
@@ -340,8 +341,8 @@
     text-align: center;
   }
   .kpi-box.cash { border-color: rgba(250,204,21,0.3); background: rgba(250,204,21,0.08); }
-  .kpi-label { font-size: 11px; font-weight: 700; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
-  .kpi-val { font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 900; }
+  .kpi-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .kpi-val { font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 900; color: #f1f5f9; }
   .kpi-val.green { color: var(--green); }
   .kpi-val.yellow { color: var(--yellow); }
 
@@ -353,7 +354,7 @@
     border-radius: 14px;
     padding: 20px;
   }
-  .trade-panel-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; }
+  .trade-panel-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; color: #f1f5f9; }
   .trade-panel-title.buy { color: var(--green); }
   .trade-panel-title.sell { color: var(--red); }
   .mock-select {
@@ -368,7 +369,7 @@
   }
   .mock-caption {
     font-size: 13px;
-    color: var(--muted);
+    color: #94a3b8;
     margin-bottom: 10px;
     padding: 8px 12px;
     background: rgba(45,212,191,0.05);
@@ -421,6 +422,7 @@
     padding: 14px 16px;
     border-bottom: 1px solid var(--border);
     font-size: 14px;
+    color: #e2e8f0;
   }
   tr:hover td { background: rgba(45,212,191,0.04); }
   .badge {
@@ -453,8 +455,8 @@
     text-align: center;
   }
   .rule-icon { font-size: 2rem; margin-bottom: 12px; }
-  .rule-title { font-weight: 800; font-size: 1rem; margin-bottom: 8px; }
-  .rule-desc { color: var(--muted); font-size: 0.9rem; }
+  .rule-title { font-weight: 800; font-size: 1rem; margin-bottom: 8px; color: #f1f5f9; }
+  .rule-desc { color: #94a3b8; font-size: 0.9rem; }
 
   /* ── FAQ ─────────────────────────────────────────────── */
   .faq-item {
@@ -468,6 +470,7 @@
     font-weight: 700;
     font-size: 1rem;
     background: rgba(20,24,50,0.5);
+    color: #f1f5f9;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -475,7 +478,7 @@
   }
   .faq-a {
     padding: 18px 22px;
-    color: var(--muted);
+    color: #94a3b8;
     font-size: 0.95rem;
     border-top: 1px solid var(--border);
     background: rgba(10,14,39,0.4);
@@ -500,9 +503,9 @@
   }
   .hist-buy  { background: rgba(74,222,128,0.15);  color: var(--green); }
   .hist-sell { background: rgba(248,113,113,0.15); color: var(--red);   }
-  .hist-ticker { font-family: 'JetBrains Mono', monospace; font-weight: 700; flex: 1; }
-  .hist-amount { color: var(--muted); font-size: 13px; }
-  .hist-time   { color: var(--muted2); font-size: 12px; }
+  .hist-ticker { font-family: 'JetBrains Mono', monospace; font-weight: 700; flex: 1; color: #f1f5f9; }
+  .hist-amount { color: #cbd5e1; font-size: 13px; }
+  .hist-time   { color: #64748b; font-size: 12px; }
 
   /* ── CHECKLIST ────────────────────────────────────────── */
   .checklist { list-style: none; display: flex; flex-direction: column; gap: 12px; }
@@ -511,6 +514,7 @@
     gap: 12px;
     align-items: flex-start;
     font-size: 0.95rem;
+    color: #e2e8f0;
   }
   .check-icon { flex-shrink: 0; margin-top: 2px; }
 
@@ -534,9 +538,10 @@
 
   /* ── PRINT ───────────────────────────────────────────── */
   @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .toc { display: none; }
-    .section { page-break-inside: avoid; }
-    body { background: #fff; color: #000; }
+    .section { page-break-inside: avoid; page-break-before: auto; }
+    .cover { min-height: auto; padding: 40px 24px; page-break-after: always; }
   }
 </style>
 </head>
